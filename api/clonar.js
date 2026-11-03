@@ -103,7 +103,25 @@ function processClonedHtml(rawHtml, targetUrl, options = {}) {
     html = html.replace(/<noscript[^>]*>(?:(?!<\/noscript>)[\s\S])*?(?:facebook\.com\/tr|googletagmanager)[\s\S]*?<\/noscript>/gi, '');
   }
 
-  // 8. Injeções de Rastreamento (Meta, TikTok, GTM, GA4, Ads, UTMFY)
+  // 8. Limpeza de resíduos do editor de páginas (CMS)
+  html = html.replace(/<input[^>]*type=["']file["'][^>]*>/gi, '');
+
+  // 9. Ajuste e otimização de vídeos (Autoplay, Muted, Controls e Poster)
+  html = html.replace(/<video([^>]*)>/gi, (match, attrs) => {
+    let updated = match;
+    if (!updated.includes('muted')) {
+      updated = updated.replace('<video', '<video muted');
+    }
+    if (!updated.includes('playsinline')) {
+      updated = updated.replace('<video', '<video playsinline webkit-playsinline');
+    }
+    if (!updated.includes('poster=')) {
+      updated = updated.replace('<video', '<video poster="/video-poster.jpg"');
+    }
+    return updated;
+  });
+
+  // 10. Injeções de Rastreamento (Meta, TikTok, GTM, GA4, Ads, UTMFY)
   let headInjections = '';
   let bodyInjections = '';
 
@@ -251,6 +269,118 @@ function processClonedHtml(rawHtml, targetUrl, options = {}) {
       </script>
     `;
   }
+
+  // Estilos de Layout Responsivo, Vídeo Vertical e Prevenção de Overflow
+  headInjections += `
+    <!-- Fix de Layout Responsivo & Player de Vídeo Vertical -->
+    <style id="cloner-responsive-video-fix">
+      /* 1. Previne scrollbar horizontal e distorção em smartphones e monitores */
+      html, body {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      *, *::before, *::after {
+        box-sizing: border-box !important;
+      }
+
+      /* 2. Oculta quaisquer inputs residuais de CMS */
+      input[type="file"], .hidden {
+        display: none !important;
+      }
+
+      /* 3. Título antes do vídeo: alinhamento central com respiro */
+      #blk-5cwn7tvw {
+        width: 100% !important;
+        max-width: 860px !important;
+        margin: 0 auto !important;
+        padding: 32px 20px 12px !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+      }
+
+      /* 4. Container de Vídeo: centralizado e sem esticar a página */
+      #blk-hf7eu834,
+      div[id^="blk-"]:has(video),
+      .video-block-container {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 10px 16px 40px !important;
+        box-sizing: border-box !important;
+        background: #000 !important;
+      }
+
+      /* 5. Player de Vídeo Vertical (9:16 / Reels / TikTok) perfeitamente enquadrado */
+      #blk-hf7eu834 video,
+      div[id^="blk-"] video,
+      video.w-full {
+        width: 100% !important;
+        max-width: 440px !important;
+        aspect-ratio: 9/16 !important;
+        height: auto !important;
+        max-height: 82vh !important;
+        object-fit: cover !important;
+        border-radius: 24px !important;
+        margin: 0 auto !important;
+        display: block !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(226, 127, 255, 0.25) !important;
+        border: 2px solid rgba(255, 255, 255, 0.1) !important;
+        background-color: #000 !important;
+      }
+
+      /* Responsividade mobile para smartphones */
+      @media (max-width: 640px) {
+        #blk-hf7eu834,
+        div[id^="blk-"]:has(video) {
+          padding: 8px 12px 30px !important;
+        }
+        #blk-hf7eu834 video,
+        div[id^="blk-"] video,
+        video.w-full {
+          max-width: 100% !important;
+          border-radius: 18px !important;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(226, 127, 255, 0.2) !important;
+        }
+      }
+    </style>
+    <script>
+      (function() {
+        function setupVideos() {
+          var vids = document.querySelectorAll('video');
+          vids.forEach(function(v) {
+            v.muted = true;
+            v.setAttribute('playsinline', '');
+            v.setAttribute('webkit-playsinline', '');
+            v.autoplay = true;
+            var p = v.play();
+            if (p !== undefined) {
+              p.catch(function() {
+                var playOnUserGesture = function() {
+                  v.play();
+                  document.removeEventListener('click', playOnUserGesture);
+                  document.removeEventListener('touchstart', playOnUserGesture);
+                };
+                document.addEventListener('click', playOnUserGesture, { once: true });
+                document.addEventListener('touchstart', playOnUserGesture, { once: true });
+              });
+            }
+          });
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setupVideos);
+        } else {
+          setupVideos();
+        }
+      })();
+    </script>
+  `;
 
   if (headInjections) {
     html = html.includes('</head>') ? html.replace('</head>', `${headInjections}</head>`) : headInjections + html;
