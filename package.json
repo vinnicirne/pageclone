@@ -1,0 +1,20 @@
+{
+  "name": "socios10k-clonador-suite",
+  "version": "1.0.0",
+  "description": "Plataforma de Ferramentas Low Ticket e Clonador com Suíte de Rastreamento (Meta CAPI, TikTok, GA4, GTM, UTMFY)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "clonador",
+    "low-ticket",
+    "marketing",
+    "pixels",
+    "capi",
+    "utmfy"
+  ],
+  "author": "",
+  "license": "MIT"
+}

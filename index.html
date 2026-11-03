@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plataforma Sócios Low Ticket - Cockpit & Suíte de Rastreamento</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ink: {
+              950: '#090b0e',
+              900: '#11141c',
+              850: '#161b26',
+              800: '#1d2332',
+              700: '#2b3449'
+            },
+            marca: {
+              400: '#ff9d2e',
+              500: '#ff8a00',
+              600: '#e67300'
+            },
+            escuro: '#06080a',
+            fg: '#f3f4f6'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM & Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090b0e;
+      color: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    const Icons = {
+      ArrowLeft: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>,
+      Check: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>,
+      Copy: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>,
+      Download: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>,
+      ExternalLink: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>,
+      Play: () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>,
+      Mobile: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>,
+      Desktop: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+      Sparkles: () => <svg className="w-4 h-4 text-marca-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>,
+      Search: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
+      Clone: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>,
+      ShieldCheck: () => <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
+      Spinner: () => <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
+      Bolt: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+      Github: () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>,
+      Vercel: () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L24 22H0L12 1Z"/></svg>
+    };
+
+    function App() {
+      const [currentRoute, setCurrentRoute] = useState('clonador');
+      const [toastMessage, setToastMessage] = useState(null);
+
+      const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3500);
+      };
+
+      return (
+        <div className="min-h-screen bg-ink-950 text-fg flex flex-col custom-scrollbar">
+          {toastMessage && (
+            <div className="fixed bottom-6 right-6 z-50 bg-marca-500 text-escuro px-5 py-3 rounded-xl font-bold shadow-2xl flex items-center gap-2 animate-bounce">
+              <Icons.Check />
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          <header className="h-16 border-b border-white/5 bg-ink-900/80 backdrop-blur sticky top-0 z-40 px-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div 
+                onClick={() => setCurrentRoute('clonador')}
+                className="cursor-pointer flex items-center gap-2"
+              >
+                <div className="w-8 h-8 rounded-lg bg-marca-500 text-escuro flex items-center justify-center font-black text-sm">
+                  10K
+                </div>
+                <div>
+                  <span className="font-extrabold text-base tracking-tight">SÓCIOS 10K</span>
+                  <span className="ml-2 text-[10px] bg-white/10 px-2 py-0.5 rounded text-fg/60 uppercase font-semibold">Suíte de Rastreamento</span>
+                </div>
+              </div>
+            </div>
+
+            <nav className="flex items-center gap-2">
+              <button 
+                onClick={() => setCurrentRoute('clonador')}
+                className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${currentRoute === 'clonador' ? 'bg-marca-500 text-escuro font-bold' : 'text-fg/50 hover:text-white'}`}
+              >
+                <Icons.Clone /> Clonar Página <span className="bg-white/20 text-[9px] uppercase px-1.5 py-0.5 rounded ml-1">CAPI + UTMFY</span>
+              </button>
+            </nav>
+          </header>
+
+          <main className="flex-1">
+            <ClonadorPaginaView showToast={showToast} />
+          </main>
+        </div>
+      );
+    }
+
+    function ClonadorPaginaView({ showToast }) {
+      const [modoEntrada, setModoEntrada] = useState('url');
+      const [targetUrl, setTargetUrl] = useState('https://fabricadelowtickets.com/preview-socios/44549046-fbd7-470a-8b63-9235b2abd21f');
+      const [rawHtmlInput, setRawHtmlInput] = useState('');
+      const [newCheckout, setNewCheckout] = useState('https://pay.kiwify.com.br/meu-checkout-afiliado-10k');
+      const [originalCheckout, setOriginalCheckout] = useState('');
+
+      const [trackingTab, setTrackingTab] = useState('meta');
+
+      const [pixelMeta, setPixelMeta] = useState('109823948572');
+      const [metaCapiToken, setMetaCapiToken] = useState('');
+      const [testCode, setTestCode] = useState('TEST9823');
+
+      const [tiktokPixel, setTiktokPixel] = useState('');
+      const [gtmId, setGtmId] = useState('');
+      const [ga4Id, setGa4Id] = useState('');
+      const [googleAdsId, setGoogleAdsId] = useState('');
+      const [googleAdsLabel, setGoogleAdsLabel] = useState('');
+
+      const [utmfyScript, setUtmfyScript] = useState('https://cdn.utmify.com.br/scripts/utms/latest.js');
+      const [enableUtmForwarder, setEnableUtmForwarder] = useState(true);
+
+      const [whatsappNumber, setWhatsappNumber] = useState('');
+      const [backRedirectUrl, setBackRedirectUrl] = useState('');
+      const [removeOriginalPixels, setRemoveOriginalPixels] = useState(true);
+
+      const [isCloning, setIsCloning] = useState(false);
+      const [statusMsg, setStatusMsg] = useState('');
+      const [clonedData, setClonedData] = useState({
+        previewUrl: '/preview-clonada',
+        detectedCheckouts: ['https://kiwify.app/ONNgjGo']
+      });
+      const [viewport, setViewport] = useState('desktop');
+
+      const handleClonar = async () => {
+        if (modoEntrada === 'url' && !targetUrl.trim()) {
+          showToast('Digite a URL da página de vendas!');
+          return;
+        }
+        if (modoEntrada === 'html' && !rawHtmlInput.trim()) {
+          showToast('Cole o código HTML da página!');
+          return;
+        }
+        if (!newCheckout.trim()) {
+          showToast('Informe o seu link de checkout de destino!');
+          return;
+        }
+
+        setIsCloning(true);
+        setStatusMsg('Renderizando página e injetando pixels...');
+
+        try {
+          const response = await fetch('/api/clonar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              targetUrl: targetUrl.trim(),
+              rawHtml: modoEntrada === 'html' ? rawHtmlInput : null,
+              newCheckout: newCheckout.trim(),
+              originalCheckout: originalCheckout.trim(),
+              pixelMeta: pixelMeta.trim(),
+              metaCapiToken: metaCapiToken.trim(),
+              testCode: testCode.trim(),
+              tiktokPixel: tiktokPixel.trim(),
+              gtmId: gtmId.trim(),
+              ga4Id: ga4Id.trim(),
+              googleAdsId: googleAdsId.trim(),
+              googleAdsLabel: googleAdsLabel.trim(),
+              utmfyScript: utmfyScript.trim(),
+              enableUtmForwarder,
+              whatsappNumber: whatsappNumber.trim(),
+              backRedirectUrl: backRedirectUrl.trim(),
+              removeOriginalPixels
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok || data.error) {
+            throw new Error(data.error || 'Falha na resposta do servidor');
+          }
+
+          // Atualiza cache de preview
+          if (data.processedHtml) {
+            fetch('/api/preview', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ html: data.processedHtml })
+            }).catch(() => {});
+          }
+
+          setClonedData(data);
+          showToast('Página clonada com sucesso! Pixels e CAPI ativos.');
+        } catch (err) {
+          console.error('Erro na clonagem:', err);
+          showToast(`Erro: ${err.message}`);
+        } finally {
+          setIsCloning(false);
+          setStatusMsg('');
+        }
+      };
+
+      const handleDownloadHtml = () => {
+        if (!clonedData?.processedHtml) {
+          window.open('/preview-clonada', '_blank');
+          return;
+        }
+        const blob = new Blob([clonedData.processedHtml], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pagina-vendas-com-pixels.html';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Arquivo pagina-vendas-com-pixels.html baixado!');
+      };
+
+      return (
+        <div className="max-w-[1480px] mx-auto px-6 py-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-marca-500/10 text-marca-400">
+                  <Icons.Clone />
+                </span>
+                <h1 className="text-2xl md:text-3xl font-black">Clonador de Páginas & Multi-Pixels</h1>
+              </div>
+              <p className="text-xs md:text-sm text-white/50 mt-1 max-w-3xl">
+                Troca automática de links de checkout, remoção de trackers concorrentes e injeção completa de <strong>Meta Pixel (CAPI), TikTok, Google Ads, GA4, GTM e UTMFY</strong> com repasse automático de parâmetros UTM.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-[480px_1fr] gap-8 items-start">
+            {/* PAINEL ESQUERDO: CONFIGURAÇÃO */}
+            <div className="rounded-3xl border border-white/8 bg-ink-900 p-6 space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-white mb-1.5">URL da Página de Vendas</label>
+                  <input 
+                    type="url"
+                    placeholder="https://exemplo.com/pagina-de-vendas"
+                    value={targetUrl}
+                    onChange={(e) => setTargetUrl(e.target.value)}
+                    className="w-full bg-ink-850 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 font-mono focus:outline-none focus:border-marca-500 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-white mb-1.5">
+                    Seu Novo Link de Checkout <span className="text-marca-400">*</span>
+                  </label>
+                  <input 
+                    type="url"
+                    placeholder="https://pay.kiwify.com.br/seu-checkout"
+                    value={newCheckout}
+                    onChange={(e) => setNewCheckout(e.target.value)}
+                    className="w-full bg-ink-850 border border-marca-500/30 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 font-mono focus:outline-none focus:border-marca-500 transition"
+                  />
+                </div>
+              </div>
+
+              {/* SEÇÃO DA SUÍTE DE RASTREAMENTO */}
+              <div className="pt-2 border-t border-white/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-marca-400 flex items-center gap-1.5">
+                    <Icons.Bolt /> Suíte de Rastreamento & Pixels
+                  </h4>
+                  <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/60 font-semibold">6 Plataformas</span>
+                </div>
+
+                <div className="grid grid-cols-4 gap-1 bg-ink-850 p-1 rounded-xl border border-white/5 text-[11px] font-bold">
+                  <button 
+                    onClick={() => setTrackingTab('meta')}
+                    className={`py-1.5 rounded-lg transition ${trackingTab === 'meta' ? 'bg-marca-500 text-escuro' : 'text-white/40 hover:text-white'}`}
+                  >
+                    Meta (FB)
+                  </button>
+                  <button 
+                    onClick={() => setTrackingTab('tiktok')}
+                    className={`py-1.5 rounded-lg transition ${trackingTab === 'tiktok' ? 'bg-marca-500 text-escuro' : 'text-white/40 hover:text-white'}`}
+                  >
+                    TikTok
+                  </button>
+                  <button 
+                    onClick={() => setTrackingTab('google')}
+                    className={`py-1.5 rounded-lg transition ${trackingTab === 'google' ? 'bg-marca-500 text-escuro' : 'text-white/40 hover:text-white'}`}
+                  >
+                    Google
+                  </button>
+                  <button 
+                    onClick={() => setTrackingTab('utmfy')}
+                    className={`py-1.5 rounded-lg transition ${trackingTab === 'utmfy' ? 'bg-marca-500 text-escuro' : 'text-white/40 hover:text-white'}`}
+                  >
+                    UTMFY
+                  </button>
+                </div>
+
+                {trackingTab === 'meta' && (
+                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5 animate-fade-in">
+                    <div>
+                      <label className="block text-[11px] font-bold text-white mb-1">ID do Pixel Meta (Facebook)</label>
+                      <input 
+                        type="text"
+                        placeholder="Ex: 109823948572"
+                        value={pixelMeta}
+                        onChange={(e) => setPixelMeta(e.target.value)}
+                        className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-white mb-1">Token da API de Conversões (CAPI)</label>
+                      <input 
+                        type="password"
+                        placeholder="EAAGnoZBZB2x..."
+                        value={metaCapiToken}
+                        onChange={(e) => setMetaCapiToken(e.target.value)}
+                        className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {trackingTab === 'tiktok' && (
+                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5 animate-fade-in">
+                    <div>
+                      <label className="block text-[11px] font-bold text-white mb-1">ID do Pixel do TikTok</label>
+                      <input 
+                        type="text"
+                        placeholder="Ex: C82K9D123ABCDEF..."
+                        value={tiktokPixel}
+                        onChange={(e) => setTiktokPixel(e.target.value)}
+                        className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {trackingTab === 'google' && (
+                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5 animate-fade-in">
+                    <div>
+                      <label className="block text-[11px] font-bold text-white mb-1">Google Tag Manager (GTM)</label>
+                      <input 
+                        type="text"
+                        placeholder="GTM-XXXXXXX"
+                        value={gtmId}
+                        onChange={(e) => setGtmId(e.target.value)}
+                        className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-white mb-1">Google Analytics 4 (GA4)</label>
+                      <input 
+                        type="text"
+                        placeholder="G-XXXXXXXXXX"
+                        value={ga4Id}
+                        onChange={(e) => setGa4Id(e.target.value)}
+                        className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-bold text-white mb-1">ID Google Ads</label>
+                        <input 
+                          type="text"
+                          placeholder="AW-123456789"
+                          value={googleAdsId}
+                          onChange={(e) => setGoogleAdsId(e.target.value)}
+                          className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-white mb-1">Rótulo Conversão</label>
+                        <input 
+                          type="text"
+                          placeholder="AbC-D_efG"
+                          value={googleAdsLabel}
+                          onChange={(e) => setGoogleAdsLabel(e.target.value)}
+                          className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {trackingTab === 'utmfy' && (
+                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5 animate-fade-in">
+                    <div>
+                      <label className="block text-[11px] font-bold text-white mb-1">Script ou Link UTMFY</label>
+                      <input 
+                        type="text"
+                        placeholder="https://cdn.utmify.com.br/scripts/utms/latest.js"
+                        value={utmfyScript}
+                        onChange={(e) => setUtmfyScript(e.target.value)}
+                        className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                      />
+                    </div>
+
+                    <div className="flex items-start gap-2 pt-1">
+                      <input 
+                        type="checkbox" 
+                        id="enable-utm"
+                        checked={enableUtmForwarder}
+                        onChange={(e) => setEnableUtmForwarder(e.target.checked)}
+                        className="mt-0.5 rounded bg-ink-950 border-white/20 text-marca-500 focus:ring-0"
+                      />
+                      <label htmlFor="enable-utm" className="text-[11px] text-white/80 cursor-pointer leading-relaxed">
+                        <strong>Repasse Dinâmico de UTMs:</strong> Repassa automaticamente <code>utm_source</code>, <code>utm_campaign</code>, <code>utm_content</code>, <code>src</code> e <code>sck</code> aos botões de checkout.
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* BOTÃO CLONAR */}
+              <button 
+                onClick={handleClonar}
+                disabled={isCloning}
+                className="w-full py-3.5 rounded-xl bg-marca-500 hover:bg-marca-400 text-escuro font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2"
+              >
+                {isCloning ? (
+                  <>
+                    <Icons.Spinner /> <span>{statusMsg || 'Processando...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Icons.Clone /> Clonar e Aplicar Rastreamento
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* PAINEL DIREITO: PRÉ-VISUALIZAÇÃO */}
+            <div className="flex flex-col space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-ink-900 border border-white/8 rounded-2xl p-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white/70">Visualização:</span>
+                  <div className="flex items-center gap-1 bg-ink-850 p-1 rounded-xl border border-white/5">
+                    <button 
+                      onClick={() => setViewport('desktop')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${viewport === 'desktop' ? 'bg-white text-ink-950' : 'text-white/40 hover:text-white'}`}
+                    >
+                      <Icons.Desktop /> Desktop
+                    </button>
+                    <button 
+                      onClick={() => setViewport('mobile')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${viewport === 'mobile' ? 'bg-white text-ink-950' : 'text-white/40 hover:text-white'}`}
+                    >
+                      <Icons.Mobile /> Mobile
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <a 
+                    href="/preview-clonada"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-1.5 rounded-xl bg-white/8 hover:bg-white/15 text-xs font-bold text-white transition flex items-center gap-1.5"
+                  >
+                    <Icons.ExternalLink /> Abrir em Nova Aba
+                  </a>
+                  <button 
+                    onClick={handleDownloadHtml}
+                    className="px-4 py-1.5 rounded-xl bg-marca-500 hover:bg-marca-400 text-escuro text-xs font-extrabold uppercase transition flex items-center gap-1.5 shadow"
+                  >
+                    <Icons.Download /> Baixar HTML Pronto
+                  </button>
+                </div>
+              </div>
+
+              {/* CARD DE TRACKERS ATIVOS */}
+              <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-2.5">
+                  <Icons.ShieldCheck />
+                  <div>
+                    <div className="text-xs font-bold text-green-400">Página pronta para tráfego pago</div>
+                    <div className="text-[11px] text-white/60">
+                      Checkout Injetado • Pixels Concorrentes Removidos • CAPI & UTMs Prontos
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {pixelMeta && <span className="bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">Meta Pixel</span>}
+                  {metaCapiToken && <span className="bg-purple-600/20 text-purple-400 border border-purple-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">CAPI</span>}
+                  {tiktokPixel && <span className="bg-pink-600/20 text-pink-400 border border-pink-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">TikTok</span>}
+                  {ga4Id && <span className="bg-amber-600/20 text-amber-400 border border-amber-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">GA4</span>}
+                  {googleAdsId && <span className="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">G-Ads</span>}
+                  {gtmId && <span className="bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">GTM</span>}
+                  {enableUtmForwarder && <span className="bg-orange-600/20 text-orange-400 border border-orange-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">UTMFY</span>}
+                </div>
+              </div>
+
+              {/* IFRAME */}
+              <div className="relative rounded-2xl border border-white/8 bg-ink-950 overflow-hidden min-h-[660px] flex items-center justify-center p-4">
+                <div className={`transition-all duration-300 rounded-xl overflow-hidden shadow-2xl bg-white ${viewport === 'mobile' ? 'w-[375px] h-[660px] border-8 border-neutral-800' : 'w-full h-[660px]'}`}>
+                  <iframe 
+                    key={clonedData.previewUrl || 'preview'}
+                    src={clonedData.previewUrl || '/preview-clonada'}
+                    title="Pré-visualização da Página Clonada"
+                    className="w-full h-full border-0"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
