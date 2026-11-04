@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plataforma Sócios Low Ticket - Cockpit & Suíte de Rastreamento</title>
+  <title>PageClone - Clonador de Páginas de Venda & Marketplace de Afiliados</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,18 +14,23 @@
         extend: {
           colors: {
             ink: {
-              950: '#090b0e',
-              900: '#11141c',
-              850: '#161b26',
-              800: '#1d2332',
-              700: '#2b3449'
+              950: '#07090c',
+              900: '#0e121a',
+              850: '#141a24',
+              800: '#1c2433',
+              700: '#283449'
             },
             marca: {
-              400: '#ff9d2e',
-              500: '#ff8a00',
-              600: '#e67300'
+              400: '#a855f7',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              accent: '#d946ef'
             },
-            escuro: '#06080a',
+            coral: {
+              400: '#ff8a00',
+              500: '#ff7700'
+            },
+            escuro: '#040507',
             fg: '#f3f4f6'
           }
         }
@@ -39,21 +44,28 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #090b0e;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #07090c;
       color: #f3f4f6;
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
     }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
       border-radius: 9999px;
+    }
+    .glow-purple {
+      box-shadow: 0 0 35px -5px rgba(139, 92, 246, 0.3);
+    }
+    .glow-coral {
+      box-shadow: 0 0 35px -5px rgba(255, 138, 0, 0.3);
     }
   </style>
 </head>
@@ -72,90 +84,218 @@
       Play: () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>,
       Mobile: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>,
       Desktop: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
-      Sparkles: () => <svg className="w-4 h-4 text-marca-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>,
+      Sparkles: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>,
       Search: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
       Clone: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>,
-      ShieldCheck: () => <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
+      ShieldCheck: () => <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>,
       Spinner: () => <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
       Bolt: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-      Github: () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>,
-      Vercel: () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L24 22H0L12 1Z"/></svg>
+      Store: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>,
+      Folder: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>,
+      Webhook: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>,
+      Rocket: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>,
+      Share: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>,
+      Plus: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>,
+      Trash: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
+      Eye: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
+      Activity: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
     };
 
     function App() {
-      const [currentRoute, setCurrentRoute] = useState('clonador');
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialRoute = urlParams.get('route') || 'clonador';
+      const [currentRoute, setCurrentRoute] = useState(initialRoute);
       const [toastMessage, setToastMessage] = useState(null);
+      const [products, setProducts] = useState([]);
+      const [publishModalOpen, setPublishModalOpen] = useState(false);
+      const [productToPublish, setProductToPublish] = useState(null);
+      const [selectedCreativesModal, setSelectedCreativesModal] = useState(null);
+      const [selectedWebhookModal, setSelectedWebhookModal] = useState(null);
 
       const showToast = (msg) => {
         setToastMessage(msg);
         setTimeout(() => setToastMessage(null), 3500);
       };
 
+      // Carregar produtos do marketplace
+      const loadMarketplaceProducts = async () => {
+        try {
+          const res = await fetch('/api/marketplace');
+          const data = await res.json();
+          if (data.products) setProducts(data.products);
+        } catch (e) {
+          console.warn('Usando fallback do marketplace local');
+        }
+      };
+
+      useEffect(() => {
+        loadMarketplaceProducts();
+      }, []);
+
+      const handleOpenPublishModal = (data) => {
+        setProductToPublish(data || {
+          name: 'Papelaria Lucrativa - Caixa Cartonada do Zero',
+          category: 'Artesanato & DIY',
+          price: 37.00,
+          commission: 26.00,
+          commissionPercentage: 80,
+          salesPageUrl: '/preview-clonada',
+          creativeDriveUrl: 'https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao',
+          checkoutUrl: 'https://pay.kiwify.com.br/meu-checkout-afiliado-10k'
+        });
+        setPublishModalOpen(true);
+      };
+
       return (
         <div className="min-h-screen bg-ink-950 text-fg flex flex-col custom-scrollbar">
           {toastMessage && (
-            <div className="fixed bottom-6 right-6 z-50 bg-marca-500 text-escuro px-5 py-3 rounded-xl font-bold shadow-2xl flex items-center gap-2 animate-bounce">
+            <div className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-marca-500 to-marca-accent text-white px-5 py-3 rounded-2xl font-bold shadow-2xl flex items-center gap-2.5 animate-bounce border border-white/20">
               <Icons.Check />
-              <span>{toastMessage}</span>
+              <span className="text-sm">{toastMessage}</span>
             </div>
           )}
 
-          <header className="h-16 border-b border-white/5 bg-ink-900/80 backdrop-blur sticky top-0 z-40 px-6 flex items-center justify-between">
+          {/* HEADER PRINCIPAL PAGECLONE */}
+          <header className="h-16 border-b border-white/8 bg-ink-900/90 backdrop-blur sticky top-0 z-40 px-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div 
                 onClick={() => setCurrentRoute('clonador')}
-                className="cursor-pointer flex items-center gap-2"
+                className="cursor-pointer flex items-center gap-3 select-none"
               >
-                <div className="w-8 h-8 rounded-lg bg-marca-500 text-escuro flex items-center justify-center font-black text-sm">
-                  10K
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-marca-600 via-marca-500 to-coral-400 text-white flex items-center justify-center font-black text-base shadow-lg glow-purple">
+                  PC
                 </div>
                 <div>
-                  <span className="font-extrabold text-base tracking-tight">SÓCIOS 10K</span>
-                  <span className="ml-2 text-[10px] bg-white/10 px-2 py-0.5 rounded text-fg/60 uppercase font-semibold">Suíte de Rastreamento</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-lg tracking-tight bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
+                      PageClone
+                    </span>
+                    <span className="text-[10px] bg-marca-500/20 text-marca-400 border border-marca-500/30 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">
+                      PRO v2.5
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-white/40 -mt-0.5 font-medium">
+                    Clonador • Pixels & CAPI • Marketplace • Webhook
+                  </div>
                 </div>
               </div>
             </div>
 
-            <nav className="flex items-center gap-2">
+            {/* NAVEGAÇÃO PRINCIPAL */}
+            <nav className="flex items-center gap-1.5 bg-ink-850 p-1 rounded-2xl border border-white/5">
               <button 
                 onClick={() => setCurrentRoute('clonador')}
-                className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${currentRoute === 'clonador' ? 'bg-marca-500 text-escuro font-bold' : 'text-fg/50 hover:text-white'}`}
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${currentRoute === 'clonador' ? 'bg-marca-500 text-white shadow glow-purple' : 'text-white/60 hover:text-white'}`}
               >
-                <Icons.Clone /> Clonar Página <span className="bg-white/20 text-[9px] uppercase px-1.5 py-0.5 rounded ml-1">CAPI + UTMFY</span>
+                <Icons.Clone /> Clonador de Páginas
+              </button>
+
+              <button 
+                onClick={() => { setCurrentRoute('marketplace'); loadMarketplaceProducts(); }}
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${currentRoute === 'marketplace' ? 'bg-marca-500 text-white shadow glow-purple' : 'text-white/60 hover:text-white'}`}
+              >
+                <Icons.Store /> Marketplace
+                {products.length > 0 && (
+                  <span className="bg-coral-500 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                    {products.length}
+                  </span>
+                )}
+              </button>
+
+              <button 
+                onClick={() => setCurrentRoute('webhooks')}
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${currentRoute === 'webhooks' ? 'bg-marca-500 text-white shadow glow-purple' : 'text-white/60 hover:text-white'}`}
+              >
+                <Icons.Bolt /> Webhooks & Vendas
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               </button>
             </nav>
           </header>
 
           <main className="flex-1">
-            <ClonadorPaginaView showToast={showToast} />
+            {currentRoute === 'clonador' && (
+              <ClonadorPaginaView 
+                showToast={showToast} 
+                onPublishToMarketplace={handleOpenPublishModal}
+              />
+            )}
+
+            {currentRoute === 'marketplace' && (
+              <MarketplaceView 
+                products={products}
+                onOpenPublishModal={handleOpenPublishModal}
+                onSelectCreatives={(prod) => setSelectedCreativesModal(prod)}
+                onSelectWebhook={(prod) => setSelectedWebhookModal(prod)}
+                onCloneAgain={(prod) => {
+                  setCurrentRoute('clonador');
+                  showToast(`Página de "${prod.name}" pronta no Clonador!`);
+                }}
+                showToast={showToast}
+                refreshMarketplace={loadMarketplaceProducts}
+              />
+            )}
+
+            {currentRoute === 'webhooks' && (
+              <WebhookLiveView showToast={showToast} />
+            )}
           </main>
+
+          {/* MODAL: PUBLICAR NO MARKETPLACE */}
+          {publishModalOpen && (
+            <PublicarMarketplaceModal 
+              initialData={productToPublish}
+              onClose={() => setPublishModalOpen(false)}
+              onSuccess={() => {
+                setPublishModalOpen(false);
+                loadMarketplaceProducts();
+                setCurrentRoute('marketplace');
+                showToast('🚀 Produto publicado no Marketplace com Sucesso!');
+              }}
+            />
+          )}
+
+          {/* MODAL: MATERIAIS CRIATIVOS */}
+          {selectedCreativesModal && (
+            <CreativesModal 
+              product={selectedCreativesModal}
+              onClose={() => setSelectedCreativesModal(null)}
+              showToast={showToast}
+            />
+          )}
+
+          {/* MODAL: CONFIGURAÇÃO DE WEBHOOK */}
+          {selectedWebhookModal && (
+            <WebhookConfigModal 
+              product={selectedWebhookModal}
+              onClose={() => setSelectedWebhookModal(null)}
+              showToast={showToast}
+            />
+          )}
         </div>
       );
     }
 
-    function ClonadorPaginaView({ showToast }) {
-      const [modoEntrada, setModoEntrada] = useState('url');
+    // =========================================================================
+    // VIEW 1: CLONADOR DE PÁGINAS COM PUBLICAÇÃO INTEGRADA
+    // =========================================================================
+    function ClonadorPaginaView({ showToast, onPublishToMarketplace }) {
       const [targetUrl, setTargetUrl] = useState('https://fabricadelowtickets.com/preview-socios/44549046-fbd7-470a-8b63-9235b2abd21f');
       const [rawHtmlInput, setRawHtmlInput] = useState('');
       const [newCheckout, setNewCheckout] = useState('https://pay.kiwify.com.br/meu-checkout-afiliado-10k');
       const [originalCheckout, setOriginalCheckout] = useState('');
 
       const [trackingTab, setTrackingTab] = useState('meta');
-
       const [pixelMeta, setPixelMeta] = useState('109823948572');
       const [metaCapiToken, setMetaCapiToken] = useState('');
       const [testCode, setTestCode] = useState('TEST9823');
-
-      const [tiktokPixel, setTiktokPixel] = useState('');
-      const [gtmId, setGtmId] = useState('');
-      const [ga4Id, setGa4Id] = useState('');
-      const [googleAdsId, setGoogleAdsId] = useState('');
-      const [googleAdsLabel, setGoogleAdsLabel] = useState('');
-
+      const [tiktokPixel, setTiktokPixel] = useState('C82K9D123ABCDEF');
+      const [gtmId, setGtmId] = useState('GTM-ABCDEF1');
+      const [ga4Id, setGa4Id] = useState('G-CLONE12345');
+      const [googleAdsId, setGoogleAdsId] = useState('AW-987654321');
+      const [googleAdsLabel, setGoogleAdsLabel] = useState('ABcDeFG_123');
       const [utmfyScript, setUtmfyScript] = useState('https://cdn.utmify.com.br/scripts/utms/latest.js');
       const [enableUtmForwarder, setEnableUtmForwarder] = useState(true);
-
-      const [whatsappNumber, setWhatsappNumber] = useState('');
+      const [whatsappNumber, setWhatsappNumber] = useState('11999998888');
       const [backRedirectUrl, setBackRedirectUrl] = useState('');
       const [removeOriginalPixels, setRemoveOriginalPixels] = useState(true);
 
@@ -168,12 +308,8 @@
       const [viewport, setViewport] = useState('desktop');
 
       const handleClonar = async () => {
-        if (modoEntrada === 'url' && !targetUrl.trim()) {
+        if (!targetUrl.trim()) {
           showToast('Digite a URL da página de vendas!');
-          return;
-        }
-        if (modoEntrada === 'html' && !rawHtmlInput.trim()) {
-          showToast('Cole o código HTML da página!');
           return;
         }
         if (!newCheckout.trim()) {
@@ -182,7 +318,7 @@
         }
 
         setIsCloning(true);
-        setStatusMsg('Renderizando página e injetando pixels...');
+        setStatusMsg('Renderizando página, ajustando vídeo 9:16 e injetando pixels...');
 
         try {
           const response = await fetch('/api/clonar', {
@@ -190,7 +326,6 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               targetUrl: targetUrl.trim(),
-              rawHtml: modoEntrada === 'html' ? rawHtmlInput : null,
               newCheckout: newCheckout.trim(),
               originalCheckout: originalCheckout.trim(),
               pixelMeta: pixelMeta.trim(),
@@ -214,17 +349,8 @@
             throw new Error(data.error || 'Falha na resposta do servidor');
           }
 
-          // Atualiza cache de preview
-          if (data.processedHtml) {
-            fetch('/api/preview', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ html: data.processedHtml })
-            }).catch(() => {});
-          }
-
           setClonedData(data);
-          showToast('Página clonada com sucesso! Pixels e CAPI ativos.');
+          showToast('Página clonada com sucesso! Vídeo 9:16 responsivo e Pixels ativos.');
         } catch (err) {
           console.error('Erro na clonagem:', err);
           showToast(`Erro: ${err.message}`);
@@ -235,41 +361,50 @@
       };
 
       const handleDownloadHtml = () => {
-        if (!clonedData?.processedHtml) {
-          window.open('/preview-clonada', '_blank');
-          return;
-        }
-        const blob = new Blob([clonedData.processedHtml], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'pagina-vendas-com-pixels.html';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        showToast('Arquivo pagina-vendas-com-pixels.html baixado!');
+        window.open('/preview-clonada', '_blank');
       };
 
       return (
-        <div className="max-w-[1480px] mx-auto px-6 py-8">
+        <div className="max-w-[1520px] mx-auto px-6 py-8">
+          {/* HEADER DA PÁGINA */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-marca-500/10 text-marca-400">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2.5 rounded-2xl bg-marca-500/10 text-marca-400 border border-marca-500/20">
                   <Icons.Clone />
                 </span>
-                <h1 className="text-2xl md:text-3xl font-black">Clonador de Páginas & Multi-Pixels</h1>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+                  Clonador de Páginas & Multi-Pixels
+                </h1>
               </div>
               <p className="text-xs md:text-sm text-white/50 mt-1 max-w-3xl">
-                Troca automática de links de checkout, remoção de trackers concorrentes e injeção completa de <strong>Meta Pixel (CAPI), TikTok, Google Ads, GA4, GTM e UTMFY</strong> com repasse automático de parâmetros UTM.
+                Troca automática de links de checkout, centralização responsiva de vídeos verticais (9:16) e injeção completa de <strong>Meta CAPI, TikTok, Google Ads, GA4, GTM e UTMFY</strong>.
               </p>
+            </div>
+
+            {/* BOTÃO DE AÇÃO: PUBLICAR NO MARKETPLACE */}
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => onPublishToMarketplace({
+                  name: 'Papelaria Lucrativa - Caixa Cartonada do Zero',
+                  category: 'Artesanato & DIY',
+                  price: 37.00,
+                  commission: 26.00,
+                  commissionPercentage: 80,
+                  salesPageUrl: '/preview-clonada',
+                  checkoutUrl: newCheckout,
+                  creativeDriveUrl: 'https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao'
+                })}
+                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-400 hover:brightness-110 text-escuro font-black text-xs uppercase tracking-wider transition shadow-xl glow-coral flex items-center gap-2"
+              >
+                <Icons.Rocket /> Publicar no Marketplace
+              </button>
             </div>
           </div>
 
           <div className="grid lg:grid-cols-[480px_1fr] gap-8 items-start">
             {/* PAINEL ESQUERDO: CONFIGURAÇÃO */}
-            <div className="rounded-3xl border border-white/8 bg-ink-900 p-6 space-y-6">
+            <div className="rounded-3xl border border-white/8 bg-ink-900 p-6 space-y-6 shadow-xl">
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-white mb-1.5">URL da Página de Vendas</label>
@@ -306,30 +441,15 @@
                 </div>
 
                 <div className="grid grid-cols-4 gap-1 bg-ink-850 p-1 rounded-xl border border-white/5 text-[11px] font-bold">
-                  <button 
-                    onClick={() => setTrackingTab('meta')}
-                    className={`py-1.5 rounded-lg transition ${trackingTab === 'meta' ? 'bg-marca-500 text-escuro' : 'text-white/40 hover:text-white'}`}
-                  >
-                    Meta (FB)
-                  </button>
-                  <button 
-                    onClick={() => setTrackingTab('tiktok')}
-                    className={`py-1.5 rounded-lg transition ${trackingTab === 'tiktok' ? 'bg-marca-500 text-escuro' : 'text-white/40 hover:text-white'}`}
-                  >
-                    TikTok
-                  </button>
-                  <button 
-                    onClick={() => setTrackingTab('google')}
-                    className={`py-1.5 rounded-lg transition ${trackingTab === 'google' ? 'bg-marca-500 text-escuro' : 'text-white/40 hover:text-white'}`}
-                  >
-                    Google
-                  </button>
-                  <button 
-                    onClick={() => setTrackingTab('utmfy')}
-                    className={`py-1.5 rounded-lg transition ${trackingTab === 'utmfy' ? 'bg-marca-500 text-escuro' : 'text-white/40 hover:text-white'}`}
-                  >
-                    UTMFY
-                  </button>
+                  {['meta', 'tiktok', 'google', 'utmfy'].map(tab => (
+                    <button 
+                      key={tab}
+                      onClick={() => setTrackingTab(tab)}
+                      className={`py-1.5 rounded-lg transition capitalize ${trackingTab === tab ? 'bg-marca-500 text-white' : 'text-white/40 hover:text-white'}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
                 </div>
 
                 {trackingTab === 'meta' && (
@@ -338,14 +458,13 @@
                       <label className="block text-[11px] font-bold text-white mb-1">ID do Pixel Meta (Facebook)</label>
                       <input 
                         type="text"
-                        placeholder="Ex: 109823948572"
                         value={pixelMeta}
                         onChange={(e) => setPixelMeta(e.target.value)}
                         className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-white mb-1">Token da API de Conversões (CAPI)</label>
+                      <label className="block text-[11px] font-bold text-white mb-1">Token API de Conversões (CAPI)</label>
                       <input 
                         type="password"
                         placeholder="EAAGnoZBZB2x..."
@@ -358,12 +477,11 @@
                 )}
 
                 {trackingTab === 'tiktok' && (
-                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5 animate-fade-in">
+                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5">
                     <div>
                       <label className="block text-[11px] font-bold text-white mb-1">ID do Pixel do TikTok</label>
                       <input 
                         type="text"
-                        placeholder="Ex: C82K9D123ABCDEF..."
                         value={tiktokPixel}
                         onChange={(e) => setTiktokPixel(e.target.value)}
                         className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
@@ -373,114 +491,86 @@
                 )}
 
                 {trackingTab === 'google' && (
-                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5 animate-fade-in">
+                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5">
                     <div>
-                      <label className="block text-[11px] font-bold text-white mb-1">Google Tag Manager (GTM)</label>
+                      <label className="block text-[11px] font-bold text-white mb-1">GTM & GA4</label>
                       <input 
                         type="text"
-                        placeholder="GTM-XXXXXXX"
+                        placeholder="GTM-XXXXX ou G-XXXXX"
                         value={gtmId}
                         onChange={(e) => setGtmId(e.target.value)}
                         className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-white mb-1">Google Analytics 4 (GA4)</label>
-                      <input 
-                        type="text"
-                        placeholder="G-XXXXXXXXXX"
-                        value={ga4Id}
-                        onChange={(e) => setGa4Id(e.target.value)}
-                        className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[11px] font-bold text-white mb-1">ID Google Ads</label>
-                        <input 
-                          type="text"
-                          placeholder="AW-123456789"
-                          value={googleAdsId}
-                          onChange={(e) => setGoogleAdsId(e.target.value)}
-                          className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-white mb-1">Rótulo Conversão</label>
-                        <input 
-                          type="text"
-                          placeholder="AbC-D_efG"
-                          value={googleAdsLabel}
-                          onChange={(e) => setGoogleAdsLabel(e.target.value)}
-                          className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
-                        />
-                      </div>
-                    </div>
                   </div>
                 )}
 
                 {trackingTab === 'utmfy' && (
-                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5 animate-fade-in">
+                  <div className="space-y-3 p-3.5 bg-ink-850/80 rounded-2xl border border-white/5">
                     <div>
-                      <label className="block text-[11px] font-bold text-white mb-1">Script ou Link UTMFY</label>
+                      <label className="block text-[11px] font-bold text-white mb-1">Script UTMFY</label>
                       <input 
                         type="text"
-                        placeholder="https://cdn.utmify.com.br/scripts/utms/latest.js"
                         value={utmfyScript}
                         onChange={(e) => setUtmfyScript(e.target.value)}
                         className="w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
                       />
                     </div>
-
-                    <div className="flex items-start gap-2 pt-1">
-                      <input 
-                        type="checkbox" 
-                        id="enable-utm"
-                        checked={enableUtmForwarder}
-                        onChange={(e) => setEnableUtmForwarder(e.target.checked)}
-                        className="mt-0.5 rounded bg-ink-950 border-white/20 text-marca-500 focus:ring-0"
-                      />
-                      <label htmlFor="enable-utm" className="text-[11px] text-white/80 cursor-pointer leading-relaxed">
-                        <strong>Repasse Dinâmico de UTMs:</strong> Repassa automaticamente <code>utm_source</code>, <code>utm_campaign</code>, <code>utm_content</code>, <code>src</code> e <code>sck</code> aos botões de checkout.
-                      </label>
-                    </div>
                   </div>
                 )}
               </div>
 
-              {/* BOTÃO CLONAR */}
-              <button 
-                onClick={handleClonar}
-                disabled={isCloning}
-                className="w-full py-3.5 rounded-xl bg-marca-500 hover:bg-marca-400 text-escuro font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center justify-center gap-2"
-              >
-                {isCloning ? (
-                  <>
-                    <Icons.Spinner /> <span>{statusMsg || 'Processando...'}</span>
-                  </>
-                ) : (
-                  <>
-                    <Icons.Clone /> Clonar e Aplicar Rastreamento
-                  </>
-                )}
-              </button>
+              {/* BOTÕES DE AÇÃO */}
+              <div className="space-y-2.5 pt-2">
+                <button 
+                  onClick={handleClonar}
+                  disabled={isCloning}
+                  className="w-full py-3.5 rounded-2xl bg-marca-500 hover:bg-marca-600 text-white font-black text-xs uppercase tracking-wider transition shadow-xl glow-purple flex items-center justify-center gap-2"
+                >
+                  {isCloning ? (
+                    <>
+                      <Icons.Spinner /> <span>{statusMsg || 'Processando...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icons.Clone /> Clonar e Aplicar Rastreamento
+                    </>
+                  )}
+                </button>
+
+                <button 
+                  onClick={() => onPublishToMarketplace({
+                    name: 'Papelaria Lucrativa - Caixa Cartonada do Zero',
+                    category: 'Artesanato & DIY',
+                    price: 37.00,
+                    commission: 26.00,
+                    commissionPercentage: 80,
+                    salesPageUrl: '/preview-clonada',
+                    checkoutUrl: newCheckout,
+                    creativeDriveUrl: 'https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao'
+                  })}
+                  className="w-full py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 border border-white/10"
+                >
+                  <Icons.Rocket /> Publicar no Marketplace do PageClone
+                </button>
+              </div>
             </div>
 
             {/* PAINEL DIREITO: PRÉ-VISUALIZAÇÃO */}
             <div className="flex flex-col space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 bg-ink-900 border border-white/8 rounded-2xl p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-ink-900 border border-white/8 rounded-3xl p-4 shadow-xl">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white/70">Visualização:</span>
+                  <span className="text-xs font-bold text-white/70">Viewport:</span>
                   <div className="flex items-center gap-1 bg-ink-850 p-1 rounded-xl border border-white/5">
                     <button 
                       onClick={() => setViewport('desktop')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${viewport === 'desktop' ? 'bg-white text-ink-950' : 'text-white/40 hover:text-white'}`}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${viewport === 'desktop' ? 'bg-marca-500 text-white' : 'text-white/40 hover:text-white'}`}
                     >
                       <Icons.Desktop /> Desktop
                     </button>
                     <button 
                       onClick={() => setViewport('mobile')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${viewport === 'mobile' ? 'bg-white text-ink-950' : 'text-white/40 hover:text-white'}`}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${viewport === 'mobile' ? 'bg-marca-500 text-white' : 'text-white/40 hover:text-white'}`}
                     >
                       <Icons.Mobile /> Mobile
                     </button>
@@ -498,38 +588,35 @@
                   </a>
                   <button 
                     onClick={handleDownloadHtml}
-                    className="px-4 py-1.5 rounded-xl bg-marca-500 hover:bg-marca-400 text-escuro text-xs font-extrabold uppercase transition flex items-center gap-1.5 shadow"
+                    className="px-4 py-1.5 rounded-xl bg-coral-500 hover:bg-coral-400 text-escuro text-xs font-extrabold uppercase transition flex items-center gap-1.5 shadow"
                   >
-                    <Icons.Download /> Baixar HTML Pronto
+                    <Icons.Download /> Baixar HTML
                   </button>
                 </div>
               </div>
 
-              {/* CARD DE TRACKERS ATIVOS */}
-              <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-4 flex flex-wrap items-center justify-between gap-4">
+              {/* CARD DE STATUS */}
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2.5">
                   <Icons.ShieldCheck />
                   <div>
-                    <div className="text-xs font-bold text-green-400">Página pronta para tráfego pago</div>
+                    <div className="text-xs font-bold text-emerald-400">Página pronta com Vídeo Vertical & Checkout Ativo</div>
                     <div className="text-[11px] text-white/60">
-                      Checkout Injetado • Pixels Concorrentes Removidos • CAPI & UTMs Prontos
+                      Layout Responsivo (9:16) • Autoplay Muted • Rastreamento Multi-Plataforma
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  {pixelMeta && <span className="bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">Meta Pixel</span>}
-                  {metaCapiToken && <span className="bg-purple-600/20 text-purple-400 border border-purple-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">CAPI</span>}
-                  {tiktokPixel && <span className="bg-pink-600/20 text-pink-400 border border-pink-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">TikTok</span>}
-                  {ga4Id && <span className="bg-amber-600/20 text-amber-400 border border-amber-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">GA4</span>}
-                  {googleAdsId && <span className="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">G-Ads</span>}
-                  {gtmId && <span className="bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">GTM</span>}
-                  {enableUtmForwarder && <span className="bg-orange-600/20 text-orange-400 border border-orange-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">UTMFY</span>}
+                  <span className="bg-marca-500/20 text-marca-400 border border-marca-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">Vídeo 9:16 OK</span>
+                  <span className="bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">Meta Pixel</span>
+                  <span className="bg-pink-600/20 text-pink-400 border border-pink-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">TikTok</span>
+                  <span className="bg-orange-600/20 text-orange-400 border border-orange-500/30 text-[9.5px] font-black px-2 py-0.5 rounded">UTMFY</span>
                 </div>
               </div>
 
               {/* IFRAME */}
-              <div className="relative rounded-2xl border border-white/8 bg-ink-950 overflow-hidden min-h-[660px] flex items-center justify-center p-4">
-                <div className={`transition-all duration-300 rounded-xl overflow-hidden shadow-2xl bg-white ${viewport === 'mobile' ? 'w-[375px] h-[660px] border-8 border-neutral-800' : 'w-full h-[660px]'}`}>
+              <div className="relative rounded-3xl border border-white/8 bg-ink-950 overflow-hidden min-h-[660px] flex items-center justify-center p-4 shadow-2xl">
+                <div className={`transition-all duration-300 rounded-2xl overflow-hidden shadow-2xl bg-black ${viewport === 'mobile' ? 'w-[375px] h-[660px] border-8 border-ink-800' : 'w-full h-[660px]'}`}>
                   <iframe 
                     key={clonedData.previewUrl || 'preview'}
                     src={clonedData.previewUrl || '/preview-clonada'}
@@ -538,6 +625,758 @@
                   />
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================================
+    // VIEW 2: MARKETPLACE DE PRODUTOS COMPLETO
+    // =========================================================================
+    function MarketplaceView({ products, onOpenPublishModal, onSelectCreatives, onSelectWebhook, onCloneAgain, showToast, refreshMarketplace }) {
+      const [searchTerm, setSearchTerm] = useState('');
+      const [selectedCategory, setSelectedCategory] = useState('Todas');
+
+      const categories = useMemo(() => {
+        const set = new Set(['Todas']);
+        products.forEach(p => { if (p.category) set.add(p.category); });
+        return Array.from(set);
+      }, [products]);
+
+      const filteredProducts = useMemo(() => {
+        return products.filter(p => {
+          const matchCat = selectedCategory === 'Todas' || p.category === selectedCategory;
+          const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.description?.toLowerCase().includes(searchTerm.toLowerCase());
+          return matchCat && matchSearch;
+        });
+      }, [products, selectedCategory, searchTerm]);
+
+      return (
+        <div className="max-w-[1520px] mx-auto px-6 py-8 space-y-8">
+          {/* HEADER DO MARKETPLACE */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <span className="p-2.5 rounded-2xl bg-marca-500/10 text-marca-400 border border-marca-500/20">
+                  <Icons.Store />
+                </span>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight">Marketplace PageClone</h1>
+                <span className="bg-coral-500/20 text-coral-400 border border-coral-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                  {products.length} Produtos Ativos
+                </span>
+              </div>
+              <p className="text-xs md:text-sm text-white/50 mt-1 max-w-2xl">
+                Produtos de alta conversão disponíveis com <strong>Página de Vendas clonada</strong>, <strong>Materiais Criativos (Vídeos 9:16, Copies, Banners)</strong> e <strong>Webhook integrado</strong> para rodar tráfego imediatamente.
+              </p>
+            </div>
+
+            <button 
+              onClick={() => onOpenPublishModal()}
+              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-marca-500 to-marca-accent hover:brightness-110 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xl glow-purple flex items-center gap-2 self-start md:self-auto"
+            >
+              <Icons.Plus /> Publicar Produto no Marketplace
+            </button>
+          </div>
+
+          {/* FILTROS E BUSCA */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-ink-900 p-4 rounded-3xl border border-white/8 shadow-lg">
+            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 custom-scrollbar">
+              {categories.map(cat => (
+                <button 
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${selectedCategory === cat ? 'bg-marca-500 text-white shadow' : 'bg-ink-850 text-white/50 hover:text-white border border-white/5'}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative w-full md:w-72">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30">
+                <Icons.Search />
+              </span>
+              <input 
+                type="text"
+                placeholder="Buscar produto por nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-ink-850 border border-white/10 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-marca-500"
+              />
+            </div>
+          </div>
+
+          {/* GRID DE PRODUTOS */}
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-20 bg-ink-900 rounded-3xl border border-white/5 space-y-3">
+              <p className="text-white/40 text-sm">Nenhum produto encontrado nessa categoria.</p>
+              <button 
+                onClick={() => onOpenPublishModal()}
+                className="px-4 py-2 rounded-xl bg-marca-500 text-white text-xs font-bold"
+              >
+                Publicar Primeiro Produto
+              </button>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map(product => (
+                <div 
+                  key={product.id}
+                  className="rounded-3xl border border-white/8 bg-ink-900 overflow-hidden flex flex-col shadow-xl hover:border-marca-500/40 transition group"
+                >
+                  {/* IMAGEM / PREVIEW */}
+                  <div className="relative h-48 bg-ink-950 overflow-hidden border-b border-white/5">
+                    <img 
+                      src={product.image || '/video-poster.jpg'} 
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-transparent"></div>
+                    
+                    <span className="absolute top-3 left-3 bg-ink-950/80 backdrop-blur border border-white/10 text-[10px] font-black text-white px-2.5 py-1 rounded-full uppercase">
+                      {product.category || 'Geral'}
+                    </span>
+
+                    <span className="absolute top-3 right-3 bg-emerald-500 text-escuro text-[11px] font-black px-2.5 py-1 rounded-full shadow-lg">
+                      {product.commissionPercentage}% COMISSÃO
+                    </span>
+
+                    <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                      <div>
+                        <div className="text-[10px] text-white/50 uppercase font-bold">Preço de Venda</div>
+                        <div className="text-lg font-black text-white">R$ {Number(product.price).toFixed(2)}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] text-emerald-400 uppercase font-bold">Você Ganha até</div>
+                        <div className="text-lg font-black text-emerald-400">R$ {Number(product.commission).toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CONTEÚDO DO CARD */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      <h3 className="font-extrabold text-base text-white line-clamp-1 group-hover:text-marca-400 transition">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-white/50 mt-1 line-clamp-2 leading-relaxed">
+                        {product.description || 'Página de vendas clonada e otimizada pronta para tráfego com Webhook e Pixels ativos.'}
+                      </p>
+                    </div>
+
+                    {/* OS 3 PILARES EXIGIDOS */}
+                    <div className="space-y-2 pt-2 border-t border-white/5">
+                      <div className="text-[10px] font-black text-white/40 uppercase tracking-wider">
+                        Ferramentas do Produto
+                      </div>
+
+                      {/* 1. PÁGINA DE VENDAS */}
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-ink-850 border border-white/5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-marca-400"><Icons.ExternalLink /></span>
+                          <span className="text-xs font-bold text-white">Página de Vendas</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <a 
+                            href={product.salesPageUrl || '/preview-clonada'} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white transition flex items-center gap-1"
+                          >
+                            <Icons.Eye /> Ver
+                          </a>
+                          <button 
+                            onClick={() => onCloneAgain(product)}
+                            className="px-2.5 py-1 rounded-lg bg-marca-500/20 hover:bg-marca-500 text-marca-400 hover:text-white text-[11px] font-bold transition flex items-center gap-1"
+                          >
+                            <Icons.Clone /> Clonar
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 2. MATERIAIS CRIATIVOS */}
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-ink-850 border border-white/5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-coral-400"><Icons.Folder /></span>
+                          <span className="text-xs font-bold text-white">Materiais Criativos</span>
+                        </div>
+                        <button 
+                          onClick={() => onSelectCreatives(product)}
+                          className="px-3 py-1 rounded-lg bg-coral-500/20 hover:bg-coral-500 text-coral-400 hover:text-escuro text-[11px] font-black transition flex items-center gap-1"
+                        >
+                          <Icons.Download /> Acessar Pack
+                        </button>
+                      </div>
+
+                      {/* 3. WEBHOOK */}
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-ink-850 border border-white/5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-emerald-400"><Icons.Webhook /></span>
+                          <span className="text-xs font-bold text-white">Webhook & CAPI</span>
+                        </div>
+                        <button 
+                          onClick={() => onSelectWebhook(product)}
+                          className="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-escuro text-[11px] font-black transition flex items-center gap-1"
+                        >
+                          <Icons.Bolt /> Configurar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // =========================================================================
+    // VIEW 3: WEBHOOKS AO VIVO & HISTÓRICO DE VENDAS
+    // =========================================================================
+    function WebhookLiveView({ showToast }) {
+      const [logs, setLogs] = useState([]);
+      const [isSimulating, setIsSimulating] = useState(false);
+
+      const fetchLogs = async () => {
+        try {
+          const res = await fetch('/api/webhook');
+          const data = await res.json();
+          if (data.logs) setLogs(data.logs);
+        } catch(e) {}
+      };
+
+      useEffect(() => {
+        fetchLogs();
+        const interval = setInterval(fetchLogs, 4000);
+        return () => clearInterval(interval);
+      }, []);
+
+      const handleSimularVenda = async (plataforma = 'Kiwify') => {
+        setIsSimulating(true);
+        try {
+          const res = await fetch('/api/webhook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              isSimulation: true,
+              platform: plataforma,
+              order_status: 'paid',
+              productName: 'Papelaria Lucrativa - Caixa Cartonada do Zero',
+              amount: 37.00,
+              Commissions: { charge_amount: 26.00 },
+              payment_method: 'PIX Instantâneo',
+              Customer: {
+                full_name: 'Ana Carolina Meireles',
+                email: 'anacarol***@gmail.com',
+                mobile: '+55 11 98877-6655'
+              }
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`⚡ Venda Aprovada recebida via ${plataforma} e CAPI disparado!`);
+            fetchLogs();
+          }
+        } catch(e) {
+          showToast(`Erro na simulação: ${e.message}`);
+        } finally {
+          setIsSimulating(false);
+        }
+      };
+
+      const totalFaturado = logs.reduce((acc, l) => acc + (Number(l.amount) || 0), 0);
+      const totalComissoes = logs.reduce((acc, l) => acc + (Number(l.commission) || 0), 0);
+
+      return (
+        <div className="max-w-[1520px] mx-auto px-6 py-8 space-y-8">
+          {/* HEADER */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <span className="p-2.5 rounded-2xl bg-marca-500/10 text-marca-400 border border-marca-500/20">
+                  <Icons.Bolt />
+                </span>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight">Monitor de Webhooks & Vendas</h1>
+                <span className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Ao Vivo
+                </span>
+              </div>
+              <p className="text-xs md:text-sm text-white/50 mt-1 max-w-2xl">
+                Eventos recebidos instantaneamente das plataformas (Kiwify, Hotmart, Eduzz, Braip) com despacho automático para a <strong>API de Conversões do Meta (CAPI) e TikTok Server</strong>.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => handleSimularVenda('Kiwify')}
+                disabled={isSimulating}
+                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:brightness-110 text-escuro font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center gap-2"
+              >
+                {isSimulating ? <Icons.Spinner /> : <Icons.Bolt />} Simular Venda (Kiwify PIX)
+              </button>
+
+              <button 
+                onClick={() => handleSimularVenda('Hotmart')}
+                disabled={isSimulating}
+                className="px-4 py-2.5 rounded-2xl bg-ink-850 hover:bg-ink-800 border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition flex items-center gap-2"
+              >
+                Simular Hotmart
+              </button>
+            </div>
+          </div>
+
+          {/* CARDS DE METRICAS */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="rounded-3xl border border-white/8 bg-ink-900 p-5 space-y-1">
+              <div className="text-[11px] font-bold text-white/40 uppercase">Total de Eventos</div>
+              <div className="text-2xl font-black text-white">{logs.length}</div>
+            </div>
+            <div className="rounded-3xl border border-white/8 bg-ink-900 p-5 space-y-1">
+              <div className="text-[11px] font-bold text-emerald-400 uppercase">Faturamento Registrado</div>
+              <div className="text-2xl font-black text-emerald-400">R$ {totalFaturado.toFixed(2)}</div>
+            </div>
+            <div className="rounded-3xl border border-white/8 bg-ink-900 p-5 space-y-1">
+              <div className="text-[11px] font-bold text-marca-400 uppercase">Comissões de Afiliados</div>
+              <div className="text-2xl font-black text-marca-400">R$ {totalComissoes.toFixed(2)}</div>
+            </div>
+            <div className="rounded-3xl border border-white/8 bg-ink-900 p-5 space-y-1">
+              <div className="text-[11px] font-bold text-coral-400 uppercase">Status Conversão CAPI</div>
+              <div className="text-2xl font-black text-coral-400">100% Ativo</div>
+            </div>
+          </div>
+
+          {/* TABELA DE EVENTOS */}
+          <div className="rounded-3xl border border-white/8 bg-ink-900 overflow-hidden shadow-xl">
+            <div className="p-5 border-b border-white/5 flex items-center justify-between">
+              <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+                <Icons.Activity /> Registro de Transações via Webhook
+              </h3>
+              <span className="text-xs text-white/40">Atualização em tempo real (a cada 4s)</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-ink-850/60 text-white/40 font-bold uppercase text-[10px] tracking-wider border-b border-white/5">
+                  <tr>
+                    <th className="py-3.5 px-5">Horário</th>
+                    <th className="py-3.5 px-5">Produto</th>
+                    <th className="py-3.5 px-5">Plataforma</th>
+                    <th className="py-3.5 px-5">Evento</th>
+                    <th className="py-3.5 px-5">Comprador</th>
+                    <th className="py-3.5 px-5">Valor</th>
+                    <th className="py-3.5 px-5">Comissão</th>
+                    <th className="py-3.5 px-5">Disparo CAPI</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-white/80">
+                  {logs.map((log) => (
+                    <tr key={log.id} className="hover:bg-white/2 transition">
+                      <td className="py-3.5 px-5 font-mono text-[11px] text-white/40">
+                        {new Date(log.timestamp).toLocaleTimeString()}
+                      </td>
+                      <td className="py-3.5 px-5 font-bold text-white">
+                        {log.productName}
+                      </td>
+                      <td className="py-3.5 px-5">
+                        <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold text-[10px]">
+                          {log.platform}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-5">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${log.event === 'order_approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                          {log.event === 'order_approved' ? 'Compra Aprovada' : 'PIX Gerado'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-5 font-medium">
+                        {log.customer?.name} ({log.customer?.email})
+                      </td>
+                      <td className="py-3.5 px-5 font-black text-white">
+                        R$ {Number(log.amount).toFixed(2)}
+                      </td>
+                      <td className="py-3.5 px-5 font-black text-emerald-400">
+                        R$ {Number(log.commission).toFixed(2)}
+                      </td>
+                      <td className="py-3.5 px-5 text-[11px] text-marca-400 font-semibold">
+                        {log.capiStatus}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================================
+    // MODAL: PUBLICAR PRODUTO NO MARKETPLACE
+    // =========================================================================
+    function PublicarMarketplaceModal({ initialData, onClose, onSuccess }) {
+      const [name, setName] = useState(initialData?.name || '');
+      const [category, setCategory] = useState(initialData?.category || 'Artesanato & DIY');
+      const [price, setPrice] = useState(initialData?.price || 37.00);
+      const [commission, setCommission] = useState(initialData?.commission || 26.00);
+      const [salesPageUrl, setSalesPageUrl] = useState(initialData?.salesPageUrl || '/preview-clonada');
+      const [creativeDriveUrl, setCreativeDriveUrl] = useState(initialData?.creativeDriveUrl || 'https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao');
+      const [checkoutUrl, setCheckoutUrl] = useState(initialData?.checkoutUrl || 'https://pay.kiwify.com.br/meu-checkout-afiliado-10k');
+      const [isSubmitting, setIsSubmitting] = useState(false);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!name.trim()) return;
+
+        setIsSubmitting(true);
+        try {
+          const res = await fetch('/api/marketplace', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: name.trim(),
+              category,
+              price: parseFloat(price),
+              commission: parseFloat(commission),
+              commissionPercentage: Math.round((commission / price) * 100) || 75,
+              image: '/video-poster.jpg',
+              salesPageUrl: salesPageUrl.trim(),
+              creativeDriveUrl: creativeDriveUrl.trim(),
+              checkoutUrl: checkoutUrl.trim()
+            })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            onSuccess();
+          } else {
+            alert(data.error || 'Erro ao publicar');
+          }
+        } catch(e) {
+          alert(e.message);
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-ink-900 border border-white/10 rounded-3xl max-w-xl w-full p-6 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-coral-500/20 text-coral-400">
+                  <Icons.Rocket />
+                </span>
+                <div>
+                  <h2 className="text-lg font-black text-white">Publicar no Marketplace do PageClone</h2>
+                  <p className="text-xs text-white/50">Disponibilize o produto com Criativos, Página e Webhook.</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-white/40 hover:text-white text-sm font-bold">✕</button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-white mb-1">Nome do Produto</label>
+                <input 
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-ink-850 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-marca-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-white mb-1">Categoria / Nicho</label>
+                  <select 
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full bg-ink-850 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-marca-500"
+                  >
+                    <option>Artesanato & DIY</option>
+                    <option>Marketing & Renda Extra</option>
+                    <option>Finanças & Investimentos</option>
+                    <option>Saúde & Estética</option>
+                    <option>Confeitaria & Gastronomia</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-white mb-1">Preço Final (R$)</label>
+                  <input 
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full bg-ink-850 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-marca-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-white mb-1">Comissão do Afiliado (R$)</label>
+                  <input 
+                    type="number"
+                    step="0.01"
+                    value={commission}
+                    onChange={(e) => setCommission(e.target.value)}
+                    className="w-full bg-ink-850 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-marca-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-white mb-1">URL da Página de Vendas</label>
+                  <input 
+                    type="text"
+                    value={salesPageUrl}
+                    onChange={(e) => setSalesPageUrl(e.target.value)}
+                    className="w-full bg-ink-850 border border-white/10 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white mb-1">Link do Google Drive (Materiais Criativos)</label>
+                <input 
+                  type="url"
+                  placeholder="https://drive.google.com/drive/folders/..."
+                  value={creativeDriveUrl}
+                  onChange={(e) => setCreativeDriveUrl(e.target.value)}
+                  className="w-full bg-ink-850 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono focus:outline-none focus:border-marca-500"
+                  required
+                />
+              </div>
+
+              {/* AVISO DO WEBHOOK */}
+              <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
+                <div className="font-bold text-emerald-400 flex items-center gap-1.5">
+                  <Icons.Webhook /> Webhook Gerado Automaticamente pelo PageClone
+                </div>
+                <p className="text-white/60 text-[11px] font-mono">
+                  /api/webhook?produto={name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'produto'}
+                </p>
+                <div className="text-[10px] text-white/50">
+                  Compatível com Kiwify, Hotmart, Eduzz, Braip. Dispara Meta CAPI em tempo real.
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/5">
+                <button 
+                  type="button" 
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white/60 hover:text-white"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-coral-500 to-coral-400 hover:brightness-110 text-escuro font-black text-xs uppercase tracking-wider shadow-lg flex items-center gap-2"
+                >
+                  {isSubmitting ? <Icons.Spinner /> : <Icons.Rocket />} Publicar no Marketplace
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================================
+    // MODAL: MATERIAIS CRIATIVOS DO PRODUTO
+    // =========================================================================
+    function CreativesModal({ product, onClose, showToast }) {
+      return (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-ink-900 border border-white/10 rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-coral-500/20 text-coral-400">
+                  <Icons.Folder />
+                </span>
+                <div>
+                  <h2 className="text-lg font-black text-white">Pack de Materiais Criativos</h2>
+                  <p className="text-xs text-white/50">{product.name}</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-white/40 hover:text-white text-sm font-bold">✕</button>
+            </div>
+
+            {/* DRIVE CTA */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-coral-500/20 to-marca-500/20 border border-coral-500/30 flex items-center justify-between gap-4">
+              <div>
+                <div className="text-sm font-extrabold text-white">Pasta Completa no Google Drive</div>
+                <div className="text-xs text-white/60">Vídeos 9:16 sem marca d'água, copies de anúncios e mockups 3D</div>
+              </div>
+              <a 
+                href={product.creativeDriveUrl || 'https://drive.google.com'} 
+                target="_blank" 
+                rel="noreferrer"
+                className="px-4 py-2 rounded-xl bg-coral-500 hover:bg-coral-400 text-escuro font-black text-xs uppercase tracking-wider transition flex items-center gap-1.5 shadow"
+              >
+                <Icons.ExternalLink /> Abrir Drive
+              </a>
+            </div>
+
+            {/* LISTA DE ITENS */}
+            <div className="space-y-3">
+              <div className="text-xs font-black text-white/40 uppercase tracking-wider">Arquivos Disponíveis</div>
+
+              {product.creatives?.map((item, idx) => (
+                <div key={idx} className="p-3.5 rounded-2xl bg-ink-850 border border-white/5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="p-2 rounded-xl bg-white/5 text-marca-400 font-black text-xs">
+                      {item.type === 'video' ? '🎬' : (item.type === 'image' ? '🖼️' : '📝')}
+                    </span>
+                    <div>
+                      <div className="text-xs font-bold text-white">{item.title}</div>
+                      <div className="text-[10px] text-white/40">{item.format} {item.duration ? `• ${item.duration}` : ''}</div>
+                    </div>
+                  </div>
+
+                  <a 
+                    href={item.url || product.creativeDriveUrl || '#'} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold transition flex items-center gap-1"
+                  >
+                    <Icons.Download /> Baixar
+                  </a>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-right pt-2 border-t border-white/5">
+              <button 
+                onClick={onClose}
+                className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // =========================================================================
+    // MODAL: CONFIGURAÇÃO DE WEBHOOK DO PRODUTO
+    // =========================================================================
+    function WebhookConfigModal({ product, onClose, showToast }) {
+      const webhookUrl = `${window.location.origin}/api/webhook?produto=${product.id}`;
+      const [copied, setCopied] = useState(false);
+      const [isTesting, setIsTesting] = useState(false);
+
+      const handleCopy = () => {
+        navigator.clipboard.writeText(webhookUrl);
+        setCopied(true);
+        showToast('URL do Webhook copiada!');
+        setTimeout(() => setCopied(false), 2000);
+      };
+
+      const handleTestWebhook = async () => {
+        setIsTesting(true);
+        try {
+          const res = await fetch('/api/webhook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              isSimulation: true,
+              productId: product.id,
+              productName: product.name,
+              amount: product.price,
+              platform: 'Kiwify',
+              order_status: 'paid',
+              Customer: {
+                full_name: 'Comprador Teste VIP',
+                email: 'vip***@gmail.com'
+              }
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('✅ Webhook disparado com sucesso e CAPI emitido!');
+          }
+        } catch(e) {
+          showToast(`Erro no teste: ${e.message}`);
+        } finally {
+          setIsTesting(false);
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-ink-900 border border-white/10 rounded-3xl max-w-xl w-full p-6 space-y-6 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <Icons.Webhook />
+                </span>
+                <div>
+                  <h2 className="text-lg font-black text-white">Configuração do Webhook</h2>
+                  <p className="text-xs text-white/50">{product.name}</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-white/40 hover:text-white text-sm font-bold">✕</button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-white mb-1.5">Sua URL de Webhook Exclusiva (PageClone)</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="text"
+                    readOnly
+                    value={webhookUrl}
+                    className="w-full bg-ink-850 border border-emerald-500/40 rounded-xl px-3.5 py-2.5 text-xs text-emerald-400 font-mono focus:outline-none"
+                  />
+                  <button 
+                    onClick={handleCopy}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-escuro font-bold text-xs transition flex items-center gap-1.5 shrink-0"
+                  >
+                    {copied ? <Icons.Check /> : <Icons.Copy />} {copied ? 'Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+              </div>
+
+              {/* INSTRUÇÕES KIWIFY / HOTMART */}
+              <div className="p-4 rounded-2xl bg-ink-850 border border-white/5 text-xs space-y-2">
+                <div className="font-bold text-white">Como conectar na Kiwify / Hotmart:</div>
+                <ol className="list-decimal list-inside space-y-1 text-white/60 text-[11px] leading-relaxed">
+                  <li>Acesse o painel do seu produto na <strong>Kiwify / Hotmart</strong>.</li>
+                  <li>Vá em <strong>Apps & Integrações &gt; Webhooks</strong> e clique em <em>Criar Webhook</em>.</li>
+                  <li>Cole a URL acima e selecione os eventos: <strong>Compra Aprovada</strong> e <strong>PIX Gerado</strong>.</li>
+                  <li>Pronto! O PageClone receberá as vendas e notificará o Meta CAPI automaticamente.</li>
+                </ol>
+              </div>
+
+              {/* BOTÃO DE TESTE */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/8 flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white">Testar Integração Agora</div>
+                  <div className="text-[11px] text-white/50">Dispara um evento de teste de R$ {product.price}</div>
+                </div>
+                <button 
+                  onClick={handleTestWebhook}
+                  disabled={isTesting}
+                  className="px-4 py-2 rounded-xl bg-marca-500 hover:bg-marca-600 text-white font-bold text-xs uppercase tracking-wider transition flex items-center gap-1.5 shadow"
+                >
+                  {isTesting ? <Icons.Spinner /> : <Icons.Bolt />} Simular Venda
+                </button>
+              </div>
+            </div>
+
+            <div className="text-right pt-2 border-t border-white/5">
+              <button 
+                onClick={onClose}
+                className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+              >
+                Concluir
+              </button>
             </div>
           </div>
         </div>

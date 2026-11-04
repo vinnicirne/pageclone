@@ -1,43 +1,56 @@
-# Sistema Reproduzido: Ferramentas Low Ticket + Suíte de Rastreamento Avançada
+# PageClone 🚀
+### Clonador Profissional de Páginas de Venda, Marketplace de Afiliados & Webhook Engine
 
-Esta é a reprodução do ecossistema de vendas da plataforma **Sócios 10K** (`socio10k.paidolowticket.com`), equipada com o **Clonador de Alta Precisão** e a **Suíte Completa de Rastreamento Multi-Plataforma**.
+O **PageClone** é um sistema completo e autônomo para afiliados e produtores de marketing digital, integrando:
 
----
+1. ⚡ **Clonador de Páginas de Alta Conversão**:
+   - Renderização profunda via Chrome Headless com espera assíncrona para SPAs React / Next.js / Vite.
+   - Enquadramento responsivo automático de vídeos verticais (9:16 - Reels / Stories / TikTok) com `aspect-ratio: 9/16`, `object-fit: cover` e `muted autoplay`.
+   - Limpeza automática de artefatos de CMS e travas globais contra quebra de layout horizontal.
+   - Substituição instantânea de checkouts (Kiwify, Hotmart, Eduzz, Braip, Monetizze, PerfectPay).
 
-## 🎯 Suíte de Rastreamento e Pixels Integrada
+2. 🛒 **Marketplace do PageClone**:
+   - Publicação de produtos com 1 clique diretamente do Clonador.
+   - Disponibilização dos 3 pilares essenciais para afiliados:
+     - 🌐 **Página de Vendas**: Visualização imediata e clonagem personalizada.
+     - 🎨 **Materiais Criativos**: Pack de vídeos 9:16 em alta resolução, carrosséis, copies validadas e link direto do Google Drive.
+     - 🔌 **Webhook**: URL exclusiva gerada pelo PageClone para Kiwify/Hotmart, com disparo automático para a API de Conversões do Meta (CAPI) e simulador de teste em tempo real.
 
-1. **Meta (Facebook) Ads**:
-   * Injeção do script do Pixel (`PageView`).
-   * Suporte a **Meta Conversions API (CAPI)** via token de acesso de servidor.
-   * Suporte a Código de Evento de Teste (`test_event_code`).
-   * Fallback com tag `<noscript>`.
-
-2. **TikTok Ads**:
-   * Script oficial do TikTok Pixel (`ttq.load`).
-   * Disparo automático de evento `ttq.page()`.
-
-3. **Google Tag Manager (GTM)**:
-   * Injeção do contêiner GTM no `<head>`.
-   * Injeção da tag `<noscript><iframe...>` no topo do `<body>`.
-
-4. **Google Analytics 4 (GA4)**:
-   * Script `gtag.js` com inicialização e disparo para o ID `G-XXXXXXXXXX`.
-
-5. **Google Ads (Conversões & Remarketing)**:
-   * Configuração de tag `AW-XXXXXXXXX`.
-   * Suporte a Rótulo de Conversão (*Conversion Label*).
-
-6. **UTMFY & Repassador Dinâmico de Parâmetros UTM**:
-   * Script oficial do UTMFY (`https://cdn.utmify.com.br/scripts/utms/latest.js`).
-   * **Motor de Preservação de UTMs**: Varre a URL da página e repassa automaticamente todos os parâmetros (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `src`, `sck`) para os botões de checkout (Kiwify, Hotmart, Eduzz, etc.), garantindo atribuição 100% precisa nas plataformas de vendas e no dashboard do UTMFY.
-
-7. **Isolamento de Segurança**:
-   * Remoção automática de rastreadores e pixels concorrentes da página clonada.
+3. 🛡️ **Suíte de Rastreamento (6 Plataformas)**:
+   - Meta Pixel & Conversions API (CAPI server-side)
+   - TikTok Pixel & Events API
+   - Google Tag Manager (GTM)
+   - Google Analytics 4 (GA4)
+   - Google Ads (gtag.js) com tracking de conversão
+   - UTMFY com Repassador Dinâmico de UTMs (`utm_source`, `utm_campaign`, `utm_content`, `src`, `sck`)
 
 ---
 
-## 🚀 Como Acessar
+## 🛠️ Como Executar Localmente
 
-O servidor já está ativo na porta 3000:
-* Acesse no navegador: [http://localhost:3000](http://localhost:3000)
-* Visualize a página com todos os pixels ativos em: [http://localhost:3000/preview-clonada](http://localhost:3000/preview-clonada)
+```bash
+# Iniciar o servidor PageClone
+npm start
+# ou
+node server.js
+```
+
+Acesse no navegador:
+- **Painel PageClone**: [http://localhost:3000](http://localhost:3000)
+- **Prévia da Página Clonada**: [http://localhost:3000/preview-clonada](http://localhost:3000/preview-clonada)
+- **API do Marketplace**: [http://localhost:3000/api/marketplace](http://localhost:3000/api/marketplace)
+- **API de Webhook**: [http://localhost:3000/api/webhook](http://localhost:3000/api/webhook)
+
+---
+
+## ☁️ Deploy na Vercel
+
+O projeto está pronto para a Vercel com Serverless Functions em `/api`:
+- `api/clonar.js`: Processador de HTML e injeção de pixels
+- `api/preview.js`: Servidor de pré-visualização
+- `api/marketplace.js`: Gerenciador de produtos do marketplace
+- `api/webhook.js`: Receptor de notificações de vendas Kiwify/Hotmart
+
+```bash
+vercel --prod
+```

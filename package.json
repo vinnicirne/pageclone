@@ -1,19 +1,21 @@
 {
-  "name": "socios10k-clonador-suite",
-  "version": "1.0.0",
-  "description": "Plataforma de Ferramentas Low Ticket e Clonador com Suíte de Rastreamento (Meta CAPI, TikTok, GA4, GTM, UTMFY)",
+  "name": "pageclone",
+  "version": "2.0.0",
+  "description": "PageClone - Clonador de Páginas de Venda, Suíte de Rastreamento (Meta CAPI, TikTok, GA4, GTM, UTMFY), Marketplace e Webhooks",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
   },
   "keywords": [
+    "pageclone",
     "clonador",
-    "low-ticket",
-    "marketing",
+    "marketplace",
+    "webhook",
     "pixels",
     "capi",
-    "utmfy"
+    "utmfy",
+    "afiliados"
   ],
   "author": "",
   "license": "MIT"

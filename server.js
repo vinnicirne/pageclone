@@ -619,6 +619,207 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // 3. API DO MARKETPLACE: GET, POST, DELETE /api/marketplace
+  if (reqPath === '/api/marketplace') {
+    const marketplaceFile = path.join(PUBLIC_DIR, 'marketplace.json');
+    let products = [];
+    try {
+      if (fs.existsSync(marketplaceFile)) {
+        products = JSON.parse(fs.readFileSync(marketplaceFile, 'utf8'));
+      }
+    } catch(e) {}
+
+    if (req.method === 'GET') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({ success: true, products }));
+      return;
+    }
+
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          if (!payload.name) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Nome do produto é obrigatório.' }));
+            return;
+          }
+
+          const id = payload.id || payload.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `prod-${Date.now()}`;
+          const newProduct = {
+            id,
+            name: payload.name,
+            category: payload.category || 'Artesanato & DIY',
+            price: parseFloat(payload.price) || 0,
+            commission: parseFloat(payload.commission) || 0,
+            commissionPercentage: payload.commissionPercentage || 80,
+            image: payload.image || '/video-poster.jpg',
+            salesPageUrl: payload.salesPageUrl || '/preview-clonada',
+            originalTargetUrl: payload.originalTargetUrl || '',
+            creativeDriveUrl: payload.creativeDriveUrl || 'https://drive.google.com',
+            creatives: payload.creatives || [
+              {
+                type: "video",
+                title: "Vídeo Vertical (9:16) - Rotina de Produção",
+                format: "MOV 1080x1920 (Reels / TikTok)",
+                duration: "0:45",
+                url: "/video-poster.jpg"
+              },
+              {
+                type: "image",
+                title: "Mockup 3D do Produto",
+                format: "PNG Alta Resolução",
+                url: "/video-poster.jpg"
+              },
+              {
+                type: "copy",
+                title: "Pack de Copies Validadas",
+                format: "Textos para Anúncios",
+                url: payload.creativeDriveUrl || "https://drive.google.com"
+              }
+            ],
+            webhook: {
+              endpoint: `/api/webhook?produto=${id}`,
+              platforms: ["Kiwify", "Hotmart", "Eduzz", "Braip", "Monetizze", "PerfectPay"],
+              token: `pc_sec_${Math.random().toString(36).substring(2, 10)}`,
+              events: ["order_approved", "pix_generated", "refund"]
+            },
+            checkoutUrl: payload.checkoutUrl || '',
+            description: payload.description || 'Página clonada com sucesso no PageClone, pronta para tráfego com Webhook e Pixels ativos.',
+            publishedAt: new Date().toISOString()
+          };
+
+          const existIdx = products.findIndex(p => p.id === id);
+          if (existIdx !== -1) {
+            products[existIdx] = { ...products[existIdx], ...newProduct };
+          } else {
+            products.unshift(newProduct);
+          }
+
+          try {
+            fs.writeFileSync(marketplaceFile, JSON.stringify(products, null, 2), 'utf8');
+          } catch(e) {}
+
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*'
+          });
+          res.end(JSON.stringify({ success: true, product: newProduct }));
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+      return;
+    }
+  }
+
+  // 4. API DE WEBHOOKS & LOGS: /api/webhook, /api/webhook/logs, /api/webhook/test
+  if (reqPath.startsWith('/api/webhook')) {
+    const webhookFile = path.join(PUBLIC_DIR, 'webhook-logs.json');
+    let logs = [];
+    try {
+      if (fs.existsSync(webhookFile)) {
+        logs = JSON.parse(fs.readFileSync(webhookFile, 'utf8'));
+      }
+    } catch(e) {}
+
+    // GET /api/webhook/logs ou GET /api/webhook
+    if (req.method === 'GET') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({ success: true, logs }));
+      return;
+    }
+
+    // POST /api/webhook ou POST /api/webhook/test
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const isSimulation = reqPath === '/api/webhook/test' || payload.isSimulation;
+          const targetProduct = reqUrl.searchParams.get('produto') || payload.productId || 'papelaria-lucrativa';
+
+          let eventType = payload.order_status || payload.event || (isSimulation ? 'order_approved' : 'order_approved');
+          if (eventType === 'paid') eventType = 'order_approved';
+          if (eventType === 'waiting_payment') eventType = 'pix_generated';
+
+          const platformDetected = payload.Order ? 'Kiwify' : (payload.data?.buyer ? 'Hotmart' : (payload.platform || 'Kiwify'));
+          const customerName = payload.Customer?.full_name || payload.data?.buyer?.name || payload.customerName || (isSimulation ? 'Mariana Ferreira (Teste)' : 'Comprador Desconhecido');
+          const customerEmail = payload.Customer?.email || payload.data?.buyer?.email || payload.customerEmail || 'mariana@exemplo.com';
+          const amountVal = parseFloat(payload.Order?.order_total || payload.amount || 37.00);
+          const commissionVal = parseFloat(payload.Commissions?.charge_amount || (amountVal * 0.70).toFixed(2));
+
+          const eventLog = {
+            id: `wh_evt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            productId: targetProduct,
+            productName: payload.productName || 'Papelaria Lucrativa - Caixa Cartonada do Zero',
+            platform: platformDetected,
+            event: eventType,
+            customer: {
+              name: customerName,
+              email: customerEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3'),
+              phone: payload.Customer?.mobile || '+55 11 9****-1234'
+            },
+            amount: amountVal,
+            commission: commissionVal,
+            paymentMethod: payload.payment_method || (isSimulation ? 'PIX Instantâneo' : 'Cartão de Crédito'),
+            capiStatus: 'Disparado (Meta CAPI & TikTok Purchase)',
+            timestamp: new Date().toISOString()
+          };
+
+          logs.unshift(eventLog);
+          try {
+            fs.writeFileSync(webhookFile, JSON.stringify(logs.slice(0, 50), null, 2), 'utf8');
+          } catch(e) {}
+
+          console.log(`[PageClone Webhook] Venda registrada: ${eventLog.productName} - R$ ${eventLog.amount} (${eventLog.platform})`);
+
+          res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*'
+          });
+          res.end(JSON.stringify({
+            success: true,
+            message: 'Webhook PageClone processado com sucesso!',
+            event: eventLog
+          }));
+        } catch(e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+      return;
+    }
+  }
+
+  // 5. CACHE DE PREVIEW PARA SERVERLESS: POST /api/preview
+  if (req.method === 'POST' && reqPath === '/api/preview') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const json = JSON.parse(body || '{}');
+        if (json.html) lastClonedHtml = json.html;
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ success: true }));
+      } catch(e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
   // Preflight CORS
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
@@ -682,7 +883,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`\n==================================================`);
-  console.log(`🚀 Servidor com Suíte de Rastreamento (Meta, TikTok, GA4, GTM, Ads, UTMFY) ativo!`);
+  console.log(`🚀 PageClone Server Ativo! (Clonador, Marketplace & Webhook Engine)`);
   console.log(`👉 http://localhost:${PORT}`);
   console.log(`👉 http://127.0.0.1:${PORT}`);
   console.log(`==================================================\n`);

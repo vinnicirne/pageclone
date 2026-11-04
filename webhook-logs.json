@@ -1,0 +1,35 @@
+[
+  {
+    "id": "wh_evt_982371",
+    "productId": "papelaria-lucrativa",
+    "productName": "Papelaria Lucrativa - Caixa Cartonada do Zero",
+    "platform": "Kiwify",
+    "event": "order_approved",
+    "customer": {
+      "name": "Mariana Ferreira",
+      "email": "mariana***@gmail.com",
+      "phone": "+55 11 9****-1234"
+    },
+    "amount": 37.00,
+    "commission": 26.00,
+    "paymentMethod": "PIX",
+    "capiStatus": "Disparado (Meta & TikTok CAPI)",
+    "timestamp": "2026-11-03T20:30:15.000Z"
+  },
+  {
+    "id": "wh_evt_982370",
+    "productId": "papelaria-lucrativa",
+    "productName": "Papelaria Lucrativa - Caixa Cartonada do Zero",
+    "platform": "Kiwify",
+    "event": "pix_generated",
+    "customer": {
+      "name": "Juliana Santos",
+      "email": "juliana***@hotmail.com"
+    },
+    "amount": 37.00,
+    "commission": 26.00,
+    "paymentMethod": "PIX",
+    "capiStatus": "Aguardando pagamento",
+    "timestamp": "2026-11-03T20:12:00.000Z"
+  }
+]

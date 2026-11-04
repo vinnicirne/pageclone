@@ -6,13 +6,16 @@
       "source": "/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS,DELETE" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, X-Kiwify-Signature, X-Hotmart-Hottok" }
       ]
     }
   ],
   "rewrites": [
     { "source": "/preview-clonada", "destination": "/api/preview" },
-    { "source": "/api/clonar", "destination": "/api/clonar" }
+    { "source": "/api/clonar", "destination": "/api/clonar" },
+    { "source": "/api/marketplace", "destination": "/api/marketplace" },
+    { "source": "/api/webhook", "destination": "/api/webhook" },
+    { "source": "/api/webhook/(.*)", "destination": "/api/webhook" }
   ]
 }

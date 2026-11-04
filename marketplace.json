@@ -1,0 +1,86 @@
+[
+  {
+    "id": "papelaria-lucrativa",
+    "name": "Papelaria Lucrativa - Caixa Cartonada do Zero",
+    "category": "Artesanato & DIY",
+    "price": 37.00,
+    "commission": 26.00,
+    "commissionPercentage": 80,
+    "image": "/video-poster.jpg",
+    "salesPageUrl": "/preview-clonada",
+    "originalTargetUrl": "https://fabricadelowtickets.com/preview-socios/44549046-fbd7-470a-8b63-9235b2abd21f",
+    "creativeDriveUrl": "https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao",
+    "creatives": [
+      {
+        "type": "video",
+        "title": "Vídeo Vertical (9:16) - Rotina de Produção da Caixa",
+        "format": "MOV 1080x1920 (Reels / TikTok)",
+        "duration": "0:45",
+        "url": "https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/1790034751024-c713d5ed.mov"
+      },
+      {
+        "type": "image",
+        "title": "Mockup 3D do Mini App & Kit de Ferramentas",
+        "format": "PNG Transparente 1200x1200",
+        "url": "/video-poster.jpg"
+      },
+      {
+        "type": "copy",
+        "title": "Copies Validadas para Feed & Stories",
+        "format": "Texto / PDF com 12 Ângulos de Anúncios",
+        "url": "https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao"
+      },
+      {
+        "type": "script",
+        "title": "Roteiro de Fechamento no WhatsApp (1 a 1)",
+        "format": "Áudios & Mensagens para Recuperação de Boleto/Pix",
+        "url": "https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao"
+      }
+    ],
+    "webhook": {
+      "endpoint": "/api/webhook?produto=papelaria-lucrativa",
+      "platforms": ["Kiwify", "Hotmart", "Eduzz", "Braip", "Monetizze", "PerfectPay"],
+      "token": "pc_sec_papelaria_872391",
+      "events": ["order_approved", "pix_generated", "billet_printed", "refund"]
+    },
+    "checkoutUrl": "https://pay.kiwify.com.br/meu-checkout-afiliado-10k",
+    "description": "Aprenda a montar sua papelaria em casa e fature até R$ 3.000,00 sem sair de casa com produção rápida de caixas cartonadas.",
+    "publishedAt": "2026-11-03T20:45:00.000Z"
+  },
+  {
+    "id": "metodo-low-ticket-10k",
+    "name": "Fórmula Vendas Rápidas Low Ticket",
+    "category": "Marketing & Renda Extra",
+    "price": 19.90,
+    "commission": 14.00,
+    "commissionPercentage": 75,
+    "image": "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=800&auto=format&fit=crop&q=80",
+    "salesPageUrl": "/preview-clonada",
+    "originalTargetUrl": "https://socio10k.paidolowticket.com/produto/",
+    "creativeDriveUrl": "https://drive.google.com/drive/folders/lowticket-criativos-10k",
+    "creatives": [
+      {
+        "type": "video",
+        "title": "VSL de Alta Retenção (19:9)",
+        "format": "MP4 Full HD",
+        "duration": "3:20",
+        "url": "https://drive.google.com"
+      },
+      {
+        "type": "image",
+        "title": "Banners de Remarketing Google & Meta",
+        "format": "Kit com 10 Formatos",
+        "url": "https://drive.google.com"
+      }
+    ],
+    "webhook": {
+      "endpoint": "/api/webhook?produto=metodo-low-ticket-10k",
+      "platforms": ["Kiwify", "Hotmart"],
+      "token": "pc_sec_lowticket_441290",
+      "events": ["order_approved", "pix_generated"]
+    },
+    "checkoutUrl": "https://pay.kiwify.com.br/checkout-low-ticket",
+    "description": "Funil direto de alta conversão para produtos de R$ 10 a R$ 29 com ROI positivo no primeiro dia de tráfego pago.",
+    "publishedAt": "2026-11-02T18:00:00.000Z"
+  }
+]
