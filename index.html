@@ -279,6 +279,7 @@
     // VIEW 1: CLONADOR DE PÁGINAS COM PUBLICAÇÃO INTEGRADA
     // =========================================================================
     function ClonadorPaginaView({ showToast, onPublishToMarketplace }) {
+      const [inputMode, setInputMode] = useState('url'); // 'url' ou 'html'
       const [targetUrl, setTargetUrl] = useState('https://fabricadelowtickets.com/preview-socios/44549046-fbd7-470a-8b63-9235b2abd21f');
       const [rawHtmlInput, setRawHtmlInput] = useState('');
       const [newCheckout, setNewCheckout] = useState('https://pay.kiwify.com.br/meu-checkout-afiliado-10k');
@@ -301,6 +302,9 @@
 
       const [isCloning, setIsCloning] = useState(false);
       const [statusMsg, setStatusMsg] = useState('');
+      const [cloneError, setCloneError] = useState(null);
+      const [previewHtml, setPreviewHtml] = useState(null);
+      const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
       const [clonedData, setClonedData] = useState({
         previewUrl: '/preview-clonada',
         detectedCheckouts: ['https://kiwify.app/ONNgjGo']
@@ -308,8 +312,13 @@
       const [viewport, setViewport] = useState('desktop');
 
       const handleClonar = async () => {
-        if (!targetUrl.trim()) {
+        setCloneError(null);
+        if (inputMode === 'url' && !targetUrl.trim()) {
           showToast('Digite a URL da página de vendas!');
+          return;
+        }
+        if (inputMode === 'html' && !rawHtmlInput.trim()) {
+          showToast('Cole o código HTML da página (Ctrl+U)!');
           return;
         }
         if (!newCheckout.trim()) {
@@ -325,7 +334,8 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              targetUrl: targetUrl.trim(),
+              targetUrl: inputMode === 'url' ? targetUrl.trim() : 'https://pagina-clonada.local',
+              rawHtml: inputMode === 'html' ? rawHtmlInput : null,
               newCheckout: newCheckout.trim(),
               originalCheckout: originalCheckout.trim(),
               pixelMeta: pixelMeta.trim(),
@@ -350,10 +360,18 @@
           }
 
           setClonedData(data);
+          if (data.processedHtml) {
+            setPreviewHtml(data.processedHtml);
+            try {
+              const blob = new Blob([data.processedHtml], { type: 'text/html;charset=utf-8' });
+              setPreviewBlobUrl(URL.createObjectURL(blob));
+            } catch(e){}
+          }
           showToast('Página clonada com sucesso! Vídeo 9:16 responsivo e Pixels ativos.');
         } catch (err) {
           console.error('Erro na clonagem:', err);
-          showToast(`Erro: ${err.message}`);
+          setCloneError(err.message);
+          showToast(`Erro ao clonar: ${err.message}`);
         } finally {
           setIsCloning(false);
           setStatusMsg('');
@@ -361,7 +379,33 @@
       };
 
       const handleDownloadHtml = () => {
-        window.open('/preview-clonada', '_blank');
+        if (previewHtml) {
+          const blob = new Blob([previewHtml], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'pagina-vendas-pageclone.html';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast('Download do HTML iniciado!');
+        } else {
+          window.open('/preview-clonada', '_blank');
+        }
+      };
+
+      const handleOpenNewTab = () => {
+        if (previewBlobUrl) {
+          window.open(previewBlobUrl, '_blank');
+        } else if (previewHtml) {
+          const blob = new Blob([previewHtml], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          setPreviewBlobUrl(url);
+          window.open(url, '_blank');
+        } else {
+          window.open('/preview-clonada', '_blank');
+        }
       };
 
       return (
@@ -406,16 +450,65 @@
             {/* PAINEL ESQUERDO: CONFIGURAÇÃO */}
             <div className="rounded-3xl border border-white/8 bg-ink-900 p-6 space-y-6 shadow-xl">
               <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-white mb-1.5">URL da Página de Vendas</label>
-                  <input 
-                    type="url"
-                    placeholder="https://exemplo.com/pagina-de-vendas"
-                    value={targetUrl}
-                    onChange={(e) => setTargetUrl(e.target.value)}
-                    className="w-full bg-ink-850 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 font-mono focus:outline-none focus:border-marca-500 transition"
-                  />
+                {/* SELETOR DE MODO: URL OU HTML */}
+                <div className="flex items-center gap-1 bg-ink-850 p-1 rounded-xl border border-white/5 text-[11px] font-bold">
+                  <button 
+                    type="button"
+                    onClick={() => { setInputMode('url'); setCloneError(null); }}
+                    className={`flex-1 py-1.5 rounded-lg transition ${inputMode === 'url' ? 'bg-marca-500 text-white shadow' : 'text-white/50 hover:text-white'}`}
+                  >
+                    🌐 Clonar via URL
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => { setInputMode('html'); setCloneError(null); }}
+                    className={`flex-1 py-1.5 rounded-lg transition ${inputMode === 'html' ? 'bg-marca-500 text-white shadow' : 'text-white/50 hover:text-white'}`}
+                  >
+                    📋 Colar HTML (Ctrl+U)
+                  </button>
                 </div>
+
+                {inputMode === 'url' ? (
+                  <div>
+                    <label className="block text-xs font-bold text-white mb-1.5">URL da Página de Vendas</label>
+                    <input 
+                      type="url"
+                      placeholder="https://exemplo.com/pagina-de-vendas"
+                      value={targetUrl}
+                      onChange={(e) => setTargetUrl(e.target.value)}
+                      className="w-full bg-ink-850 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 font-mono focus:outline-none focus:border-marca-500 transition"
+                    />
+                    <p className="text-[10px] text-white/40 mt-1">Dica: se a página tiver proteção Cloudflare, use a aba "Colar HTML (Ctrl+U)".</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-bold text-white">Código HTML da Página (Ctrl+U)</label>
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">100% Imune a Bloqueios</span>
+                    </div>
+                    <textarea 
+                      rows={4}
+                      placeholder="Abra a página de vendas no navegador, aperte Ctrl+U, selecione tudo (Ctrl+A), copie (Ctrl+C) e cole aqui..."
+                      value={rawHtmlInput}
+                      onChange={(e) => setRawHtmlInput(e.target.value)}
+                      className="w-full bg-ink-850 border border-white/10 rounded-xl px-3.5 py-2 text-[11px] text-white placeholder-white/30 font-mono focus:outline-none focus:border-marca-500 transition resize-none custom-scrollbar"
+                    />
+                  </div>
+                )}
+
+                {cloneError && (
+                  <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs space-y-2">
+                    <div className="font-bold">⚠️ Erro ao acessar a URL diretamente:</div>
+                    <div className="text-[11px] text-white/70 leading-relaxed">{cloneError}</div>
+                    <button 
+                      type="button"
+                      onClick={() => setInputMode('html')}
+                      className="px-3 py-1 rounded-lg bg-rose-500 text-white font-bold text-[11px] hover:bg-rose-600 transition"
+                    >
+                      👉 Alternar para "Colar HTML (Ctrl+U)"
+                    </button>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-bold text-white mb-1.5">
@@ -578,14 +671,12 @@
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <a 
-                    href="/preview-clonada"
-                    target="_blank"
-                    rel="noreferrer"
+                  <button 
+                    onClick={handleOpenNewTab}
                     className="px-3.5 py-1.5 rounded-xl bg-white/8 hover:bg-white/15 text-xs font-bold text-white transition flex items-center gap-1.5"
                   >
                     <Icons.ExternalLink /> Abrir em Nova Aba
-                  </a>
+                  </button>
                   <button 
                     onClick={handleDownloadHtml}
                     className="px-4 py-1.5 rounded-xl bg-coral-500 hover:bg-coral-400 text-escuro text-xs font-extrabold uppercase transition flex items-center gap-1.5 shadow"
@@ -619,7 +710,8 @@
                 <div className={`transition-all duration-300 rounded-2xl overflow-hidden shadow-2xl bg-black ${viewport === 'mobile' ? 'w-[375px] h-[660px] border-8 border-ink-800' : 'w-full h-[660px]'}`}>
                   <iframe 
                     key={clonedData.previewUrl || 'preview'}
-                    src={clonedData.previewUrl || '/preview-clonada'}
+                    srcDoc={previewHtml || undefined}
+                    src={!previewHtml ? (clonedData.previewUrl || '/preview-clonada') : undefined}
                     title="Pré-visualização da Página Clonada"
                     className="w-full h-full border-0"
                   />

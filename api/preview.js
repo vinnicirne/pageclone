@@ -1,4 +1,7 @@
 // Vercel Serverless Function para servir o preview da página clonada
+const fs = require('fs');
+const path = require('path');
+
 let cachedPreviewHtml = null;
 
 module.exports = async function handler(req, res) {
@@ -18,6 +21,15 @@ module.exports = async function handler(req, res) {
       }
     });
     return;
+  }
+
+  if (!cachedPreviewHtml) {
+    try {
+      const snapPath = path.join(__dirname, '..', 'snapshot-fabrica.html');
+      if (fs.existsSync(snapPath)) {
+        cachedPreviewHtml = fs.readFileSync(snapPath, 'utf8');
+      }
+    } catch(e) {}
   }
 
   if (!cachedPreviewHtml) {

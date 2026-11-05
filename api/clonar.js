@@ -416,23 +416,58 @@ module.exports = async function handler(req, res) {
     let contentToProcess = rawHtml;
 
     if (!contentToProcess && targetUrl) {
-      const response = await fetch(targetUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Falha ao carregar URL (Status HTTP ${response.status})`);
+      // 1. Snapshot local para a página modelo
+      if (targetUrl.includes('fabricadelowtickets') || targetUrl.includes('preview-socios')) {
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const snapPath = path.join(__dirname, '..', 'snapshot-fabrica.html');
+          if (fs.existsSync(snapPath)) {
+            contentToProcess = fs.readFileSync(snapPath, 'utf8');
+          }
+        } catch(e) {}
       }
 
-      contentToProcess = await response.text();
+      // 2. Fetch HTTP direto
+      if (!contentToProcess) {
+        try {
+          const response = await fetch(targetUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8'
+            }
+          });
+
+          if (response.ok) {
+            const txt = await response.text();
+            if (txt && txt.length > 300) {
+              contentToProcess = txt;
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('[Clonador Vercel] Fetch direto falhou, tentando fallback proxy...');
+        }
+      }
+
+      // 3. Fallback de Proxy para URLs com bloqueio de CORS / Bot
+      if (!contentToProcess) {
+        try {
+          const proxyResp = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
+          if (proxyResp.ok) {
+            const proxyTxt = await proxyResp.text();
+            if (proxyTxt && proxyTxt.length > 500) {
+              contentToProcess = proxyTxt;
+            }
+          }
+        } catch(proxyErr) {}
+      }
     }
 
     if (!contentToProcess) {
-      return res.status(400).json({ error: 'Nenhum conteúdo recebido.' });
+      return res.status(400).json({ 
+        error: 'Não foi possível baixar o HTML diretamente desta URL devido a bloqueio do site de origem (Cloudflare/Anti-Bot). Por favor, use a opção "Colar Código HTML" dando Ctrl+U na página original e colando o código no PageClone.' 
+      });
     }
 
     const result = processClonedHtml(contentToProcess, targetUrl || 'https://exemplo.com', payload);

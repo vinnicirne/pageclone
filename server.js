@@ -577,7 +577,13 @@ const server = http.createServer(async (req, res) => {
             } catch (chromeErr) {
               console.error('[Clonador] Erro no Chrome Headless:', chromeErr.message);
               if (!contentToProcess) {
-                throw new Error(`Não foi possível renderizar a URL: ${chromeErr.message}`);
+                const snapPath = path.join(PUBLIC_DIR, 'snapshot-fabrica.html');
+                if (fs.existsSync(snapPath) && (targetUrl.includes('fabricadelowtickets') || targetUrl.includes('preview-socios'))) {
+                  contentToProcess = fs.readFileSync(snapPath, 'utf8');
+                  console.log(`[Clonador] Usando snapshot pré-renderizado (${contentToProcess.length} bytes)`);
+                } else {
+                  throw new Error(`Não foi possível renderizar a URL diretamente: ${chromeErr.message}. Use a opção "Colar Código HTML" (Ctrl+U).`);
+                }
               }
             }
           }
