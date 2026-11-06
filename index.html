@@ -311,6 +311,22 @@
       });
       const [viewport, setViewport] = useState('desktop');
 
+      useEffect(() => {
+        // Pré-carrega o preview da página clonada imediatamente no carregamento inicial
+        if (!previewHtml) {
+          fetch('/preview-clonada')
+            .then(res => res.text())
+            .then(html => {
+              if (html && html.length > 500 && !html.includes('Nenhuma página clonada ativa')) {
+                setPreviewHtml(html);
+                const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                setPreviewBlobUrl(URL.createObjectURL(blob));
+              }
+            })
+            .catch(() => {});
+        }
+      }, []);
+
       const handleClonar = async () => {
         setCloneError(null);
         if (inputMode === 'url' && !targetUrl.trim()) {
@@ -820,8 +836,12 @@
                   {/* IMAGEM / PREVIEW */}
                   <div className="relative h-48 bg-ink-950 overflow-hidden border-b border-white/5">
                     <img 
-                      src={product.image || '/video-poster.jpg'} 
+                      src={product.image || 'https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/7x92iua7/1790030667346-5fc519f7.png'} 
                       alt={product.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/7x92iua7/1790030667346-5fc519f7.png';
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-transparent"></div>

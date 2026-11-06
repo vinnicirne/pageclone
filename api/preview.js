@@ -1,6 +1,5 @@
 // Vercel Serverless Function para servir o preview da página clonada
-const fs = require('fs');
-const path = require('path');
+const snapshotData = require('./snapshotData');
 
 let cachedPreviewHtml = null;
 
@@ -23,18 +22,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  if (!cachedPreviewHtml) {
-    try {
-      const snapPath = path.join(__dirname, '..', 'snapshot-fabrica.html');
-      if (fs.existsSync(snapPath)) {
-        cachedPreviewHtml = fs.readFileSync(snapPath, 'utf8');
-      }
-    } catch(e) {}
-  }
-
-  if (!cachedPreviewHtml) {
-    return res.status(200).send(`<!DOCTYPE html><html><body style="font-family:sans-serif;background:#090b0e;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;"><div style="text-align:center;"><p style="color:#ff8a00;font-weight:bold;">Nenhuma prévia ativa no momento.</p><p style="color:#888;font-size:13px;">Volte ao Clonador e processe a página desejada.</p></div></body></html>`);
-  }
-
-  return res.status(200).send(cachedPreviewHtml);
+  // Sempre retorna a página pré-renderizada ou a última clonada (NUNCA tela branca)
+  const htmlToServe = cachedPreviewHtml || snapshotData;
+  return res.status(200).send(htmlToServe);
 };

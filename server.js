@@ -24,6 +24,12 @@ const MIME_TYPES = {
 };
 
 let lastClonedHtml = null;
+try {
+  const snapPath = path.join(__dirname, 'snapshot-fabrica.html');
+  if (fs.existsSync(snapPath)) {
+    lastClonedHtml = fs.readFileSync(snapPath, 'utf8');
+  }
+} catch (e) {}
 let lastTargetBaseUrl = null;
 
 // Padrões de gateways de pagamento para substituição
@@ -664,7 +670,7 @@ const server = http.createServer(async (req, res) => {
             price: parseFloat(payload.price) || 0,
             commission: parseFloat(payload.commission) || 0,
             commissionPercentage: payload.commissionPercentage || 80,
-            image: payload.image || '/video-poster.jpg',
+            image: payload.image || 'https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/7x92iua7/1790030667346-5fc519f7.png',
             salesPageUrl: payload.salesPageUrl || '/preview-clonada',
             originalTargetUrl: payload.originalTargetUrl || '',
             creativeDriveUrl: payload.creativeDriveUrl || 'https://drive.google.com',
@@ -674,13 +680,13 @@ const server = http.createServer(async (req, res) => {
                 title: "Vídeo Vertical (9:16) - Rotina de Produção",
                 format: "MOV 1080x1920 (Reels / TikTok)",
                 duration: "0:45",
-                url: "/video-poster.jpg"
+                url: "https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/1790034751024-c713d5ed.mov"
               },
               {
                 type: "image",
                 title: "Mockup 3D do Produto",
                 format: "PNG Alta Resolução",
-                url: "/video-poster.jpg"
+                url: "https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/7x92iua7/1790030667346-5fc519f7.png"
               },
               {
                 type: "copy",

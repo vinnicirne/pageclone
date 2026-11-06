@@ -2,10 +2,20 @@
 const fs = require('fs');
 const path = require('path');
 
+const DEFAULT_IMAGE_CDN = "https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/7x92iua7/1790030667346-5fc519f7.png";
+
 let memoryMarketplace = null;
 
 function loadMarketplace() {
   if (memoryMarketplace) return memoryMarketplace;
+  try {
+    const bundled = require('../marketplace.json');
+    if (Array.isArray(bundled) && bundled.length > 0) {
+      memoryMarketplace = bundled;
+      return memoryMarketplace;
+    }
+  } catch (e) {}
+
   try {
     const filePath = path.join(__dirname, '..', 'marketplace.json');
     if (fs.existsSync(filePath)) {
@@ -24,7 +34,7 @@ function loadMarketplace() {
       price: 37.00,
       commission: 26.00,
       commissionPercentage: 80,
-      image: "/video-poster.jpg",
+      image: DEFAULT_IMAGE_CDN,
       salesPageUrl: "/preview-clonada",
       originalTargetUrl: "https://fabricadelowtickets.com/preview-socios/44549046-fbd7-470a-8b63-9235b2abd21f",
       creativeDriveUrl: "https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao",
@@ -40,7 +50,7 @@ function loadMarketplace() {
           type: "image",
           title: "Mockup 3D do Mini App & Kit de Ferramentas",
           format: "PNG Transparente 1200x1200",
-          url: "/video-poster.jpg"
+          url: DEFAULT_IMAGE_CDN
         },
         {
           type: "copy",
@@ -102,7 +112,7 @@ module.exports = async function handler(req, res) {
         price: parseFloat(payload.price) || 0,
         commission: parseFloat(payload.commission) || 0,
         commissionPercentage: payload.commissionPercentage || 70,
-        image: payload.image || '/video-poster.jpg',
+        image: payload.image || DEFAULT_IMAGE_CDN,
         salesPageUrl: payload.salesPageUrl || '/preview-clonada',
         originalTargetUrl: payload.originalTargetUrl || '',
         creativeDriveUrl: payload.creativeDriveUrl || 'https://drive.google.com',
@@ -111,7 +121,7 @@ module.exports = async function handler(req, res) {
             type: "video",
             title: "Criativo Principal (Reels / TikTok 9:16)",
             format: "Vídeo Vertical HD",
-            url: "/video-poster.jpg"
+            url: DEFAULT_IMAGE_CDN
           },
           {
             type: "copy",

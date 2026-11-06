@@ -6,7 +6,7 @@
     "price": 37.00,
     "commission": 26.00,
     "commissionPercentage": 80,
-    "image": "/video-poster.jpg",
+    "image": "https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/7x92iua7/1790030667346-5fc519f7.png",
     "salesPageUrl": "/preview-clonada",
     "originalTargetUrl": "https://fabricadelowtickets.com/preview-socios/44549046-fbd7-470a-8b63-9235b2abd21f",
     "creativeDriveUrl": "https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao",
@@ -22,7 +22,7 @@
         "type": "image",
         "title": "Mockup 3D do Mini App & Kit de Ferramentas",
         "format": "PNG Transparente 1200x1200",
-        "url": "/video-poster.jpg"
+        "url": "https://pub-c6ca488ff00c4ec18c028473dea48196.r2.dev/page-media/7x92iua7/1790030667346-5fc519f7.png"
       },
       {
         "type": "copy",
