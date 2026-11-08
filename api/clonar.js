@@ -7,9 +7,10 @@ const CHECKOUT_PATTERNS = [
   /href=["'](https?:\/\/kiwify\.app\/[^"']+)["']/gi
 ];
 
-function processClonedHtml(rawHtml, targetUrl, options = {}) {
+async function processClonedHtml(rawHtml, targetUrl, options = {}) {
   const { 
     newCheckout, 
+    newCheckouts,
     originalCheckout, 
     pixelMeta, 
     metaCapiToken,
@@ -50,9 +51,38 @@ function processClonedHtml(rawHtml, targetUrl, options = {}) {
     }
   }
 
+  // Remove qualquer atributo crossorigin que causa bloqueio de CORS no iframe srcdoc
+  html = html.replace(/(<link[^>]*?)\s+crossorigin(?:=["'][^"']*["'])?([^>]*?>)/gi, '$1$2');
+  html = html.replace(/(<script[^>]*?)\s+crossorigin(?:=["'][^"']*["'])?([^>]*?>)/gi, '$1$2');
+
+  // Embutir estilos CSS externos inline para imunidade completa a bloqueios de CORS
+  const cssMatches = Array.from(html.matchAll(/<link[^>]*rel=["']stylesheet["'][^>]*href=["'](https?:\/\/[^"']+\.css[^"']*)["'][^>]*>/gi));
+  for (const match of cssMatches) {
+    const cssUrl = match[1];
+    if (!cssUrl.includes('fonts.googleapis.com')) {
+      try {
+        const cssResp = await fetch(cssUrl);
+        if (cssResp.ok) {
+          const cssContent = await cssResp.text();
+          if (cssContent && cssContent.length > 50) {
+            html = html.replace(match[0], `<style data-inlined-from="${cssUrl}">\n${cssContent}\n</style>`);
+            console.log(`[Clonador Vercel] CSS embutido inline (${cssContent.length} bytes): ${cssUrl}`);
+          }
+        }
+      } catch (e) {
+        console.warn(`[Clonador Vercel] Falha ao embutir CSS ${cssUrl}:`, e.message);
+      }
+    }
+  }
+
   // 3. Remover scripts de reidratação SPA para preservar o HTML estático
   html = html.replace(/<script[^>]*type=["']module["'][^>]*>[\s\S]*?<\/script>/gi, '<!-- [Script SPA desativado para preservar o HTML renderizado] -->');
   html = html.replace(/<link[^>]*rel=["']modulepreload["'][^>]*>/gi, '');
+
+  // 3.1. Garantir ativação de Tema Escuro (Evita texto preto em fundo preto)
+  if (!html.includes('class="dark') && !html.includes("class='dark")) {
+    html = html.replace(/<html\b([^>]*)>/i, '<html class="dark" $1>');
+  }
 
   // 4. Guarda anti-crash e frame-buster
   const antiCrashGuard = `
@@ -83,20 +113,57 @@ function processClonedHtml(rawHtml, targetUrl, options = {}) {
     }
   });
 
-  // 6. Substituição de checkouts
-  if (newCheckout && newCheckout.trim()) {
-    const cleanNewCheckout = newCheckout.trim();
+  // 6. SUBSTITUIÇÃO MULTI-CHECKOUT DE LINKS E CTAS (OFERTA 1, OFERTA 2, ETC.)
+  const checkoutList = Array.isArray(newCheckouts) && newCheckouts.length > 0 
+    ? newCheckouts.filter(c => c && typeof c === 'string' && c.trim()).map(c => c.trim()) 
+    : (newCheckout && typeof newCheckout === 'string' && newCheckout.trim() ? [newCheckout.trim()] : []);
+
+  if (checkoutList.length > 0) {
+    // 6.1. Se houver originalCheckout específico
     if (originalCheckout && originalCheckout.trim()) {
       const origRegex = new RegExp(originalCheckout.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-      html = html.replace(origRegex, cleanNewCheckout);
+      html = html.replace(origRegex, checkoutList[0]);
     } else {
+      // 6.2. Substituição em gateways conhecidos já detectados
+      let origCounter = 0;
       detectedCheckouts.forEach(orig => {
+        const targetLink = checkoutList[origCounter] || checkoutList[checkoutList.length - 1];
+        origCounter++;
         const origRegex = new RegExp(orig.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-        html = html.replace(origRegex, cleanNewCheckout);
+        html = html.replace(origRegex, targetLink);
       });
-      html = html.replace(/href=["']https?:\/\/(?:pay|checkout)\.[^"']+["']/gi, `href="${cleanNewCheckout}"`);
-      html = html.replace(/href=["']https?:\/\/kiwify\.app\/[^"']+["']/gi, `href="${cleanNewCheckout}"`);
+      html = html.replace(/href=["']https?:\/\/(?:pay|checkout)\.[^"']+["']/gi, `href="${checkoutList[0]}"`);
+      html = html.replace(/href=["']https?:\/\/kiwify\.app\/[^"']+["']/gi, `href="${checkoutList[0]}"`);
     }
+
+    // 6.3. Substituição sequencial de tags <a> de CTA de compra (mesmo com href="#" ou href="javascript:void(0)")
+    let ctaCounter = 0;
+    html = html.replace(/<a\b([^>]*?)(\shref=["'][^"']*["'])([^>]*?)>([\s\S]*?)<\/a>/gi, (fullTag, beforeHref, hrefAttr, afterHref, innerText) => {
+      const combinedAttrs = `${beforeHref} ${afterHref}`;
+      const isCtaClass = /\b(cta|pkg-cta|bp-cta|btn-cta|button-cta|btn-buy|checkout-btn|btn-checkout|ofc-cta|thp-cta|cnf-offer-cta)\b/i.test(combinedAttrs);
+      const isCtaText = /(QUERO|COMPRAR|ACESSO|GARANTIR|ASSINAR|INSCREVER|ADQUIRIR|COMEÇAR)/i.test(innerText);
+      const isDummyOrGenericHref = /href=["'](#|javascript:void\(0\);?|https?:\/\/(?:pay|checkout)\.[^"']+|)["']/i.test(hrefAttr);
+
+      if (isCtaClass || (isDummyOrGenericHref && isCtaText)) {
+        const targetLink = checkoutList[ctaCounter] || checkoutList[checkoutList.length - 1];
+        ctaCounter++;
+        return `<a${beforeHref} href="${targetLink}" target="_blank" rel="noopener noreferrer"${afterHref}>${innerText}</a>`;
+      }
+      return fullTag;
+    });
+
+    // 6.4. Substitui disparos via onclick ou JS
+    html = html.replace(/(window\.open\(["']|location\.href\s*=\s*["'])(https?:\/\/[^"']*(?:kiwify|hotmart|eduzz|monetizze|perfectpay|braip|kirvano|yampi|cakto|greenn|ticto|doppus|pay\.|checkout\.)[^"']*)/gi, (m, p1) => {
+      return `${p1}${checkoutList[0]}`;
+    });
+  } else {
+    // Se o usuário não definiu novo checkout, neutraliza os links para impedir que o produtor antigo receba a venda
+    detectedCheckouts.forEach(orig => {
+      const origRegex = new RegExp(orig.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      html = html.replace(origRegex, 'javascript:void(0)');
+    });
+    html = html.replace(/href=["']https?:\/\/(?:pay|checkout)\.[^"']+["']/gi, 'href="javascript:void(0)"');
+    html = html.replace(/href=["']https?:\/\/kiwify\.app\/[^"']+["']/gi, 'href="javascript:void(0)"');
   }
 
   // 7. Remoção de rastreadores antigos
@@ -286,6 +353,15 @@ function processClonedHtml(rawHtml, targetUrl, options = {}) {
         box-sizing: border-box !important;
       }
 
+      /* 1.1. Garante contraste e legibilidade de textos em temas escuros */
+      html.dark, html.dark body, body {
+        color: #f3f4f6 !important;
+      }
+      .dark, [data-brand="fabrica"] {
+        --fg: 248 250 255 !important;
+        --fg-soft: 160 165 175 !important;
+      }
+
       *, *::before, *::after {
         box-sizing: border-box !important;
       }
@@ -413,63 +489,72 @@ module.exports = async function handler(req, res) {
 
   try {
     const payload = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const { targetUrl, rawHtml } = payload;
+    let { targetUrl, rawHtml } = payload;
+
+    if (targetUrl && targetUrl.includes('preview-socios/produto/ingles') && !targetUrl.includes('ingles-30dias')) {
+      console.log(`[Clonador Vercel] Normalizando URL: ${targetUrl} -> produto/ingles-30dias`);
+      targetUrl = targetUrl.replace('produto/ingles', 'produto/ingles-30dias');
+    }
 
     let contentToProcess = rawHtml;
 
     if (!contentToProcess && targetUrl) {
-      // 1. Snapshot local para a página modelo (ou qualquer URL conhecida da Fábrica/Sócios)
-      if (targetUrl.includes('fabricadelowtickets') || targetUrl.includes('preview-socios') || targetUrl.includes('papelaria')) {
+      // 1. Snapshot local EXCLUSIVO para a demonstração da Caixa Cartonada
+      if (targetUrl.includes('44549046-fbd7-470a-8b63-9235b2abd21f')) {
         contentToProcess = snapshotData;
       }
 
-      // 2. Fetch HTTP direto
+      // 2. Fetch HTTP direto com cabeçalhos reais de navegador
       if (!contentToProcess) {
         try {
           const response = await fetch(targetUrl, {
+            redirect: 'follow',
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-              'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8'
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+              'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Upgrade-Insecure-Requests': '1'
             }
           });
 
           if (response.ok) {
             const txt = await response.text();
-            if (txt && txt.length > 300) {
-              // Se o site retornou apenas a casca React sem hidratar (<div id="root"></div> curto), usar o snapshot
-              if (txt.includes('root') && txt.length < 5000) {
-                contentToProcess = snapshotData;
-              } else {
-                contentToProcess = txt;
-              }
+            if (txt && txt.trim().length > 100) {
+              contentToProcess = txt;
             }
           }
         } catch (fetchErr) {
-          console.warn('[Clonador Vercel] Fetch direto falhou, tentando fallback proxy...');
+          console.warn('[Clonador] Fetch direto falhou, tentando fallback proxy...', fetchErr.message);
         }
       }
 
-      // 3. Fallback de Proxy para URLs com bloqueio de CORS / Bot
+      // 3. Fallbacks de Proxy caso haja bloqueio de Cloudflare/CORS/Anti-Bot
       if (!contentToProcess) {
-        try {
-          const proxyResp = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
-          if (proxyResp.ok) {
-            const proxyTxt = await proxyResp.text();
-            if (proxyTxt && proxyTxt.length > 500) {
-              if (proxyTxt.includes('root') && proxyTxt.length < 5000) {
-                contentToProcess = snapshotData;
-              } else {
+        const proxyList = [
+          `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+        ];
+
+        for (const proxyUrl of proxyList) {
+          try {
+            const proxyResp = await fetch(proxyUrl, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
+              }
+            });
+            if (proxyResp.ok) {
+              const proxyTxt = await proxyResp.text();
+              if (proxyTxt && proxyTxt.trim().length > 100) {
                 contentToProcess = proxyTxt;
+                break;
               }
             }
+          } catch(proxyErr) {
+            // Continua para o próximo proxy
           }
-        } catch(proxyErr) {}
-      }
-
-      // 4. Fallback de segurança definitivo para nunca retornar erro 400 em URLs de demonstração
-      if (!contentToProcess && (targetUrl.includes('fabricadelowtickets') || targetUrl.includes('socio') || targetUrl.includes('lowticket'))) {
-        contentToProcess = snapshotData;
+        }
       }
     }
 
@@ -479,7 +564,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const result = processClonedHtml(contentToProcess, targetUrl || 'https://exemplo.com', payload);
+    const result = await processClonedHtml(contentToProcess, targetUrl || 'https://exemplo.com', payload);
 
     // Na Vercel, retornamos o HTML processado diretamente para o frontend renderizar no iframe
     return res.status(200).json({

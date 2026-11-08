@@ -3,6 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 
+process.on('uncaughtException', (err) => {
+  console.error('[Server UncaughtException]:', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Server UnhandledRejection]:', reason);
+});
+
 const PORT = 3000;
 const HOST = '0.0.0.0';
 const PUBLIC_DIR = __dirname;
@@ -40,7 +47,7 @@ const CHECKOUT_PATTERNS = [
   /href=["'](https?:\/\/kiwify\.app\/[^"']+)["']/gi
 ];
 
-// Motor de Renderização com Chrome Headless + Virtual Time Budget
+// Motor de Renderização com Chrome Headless Otimizado (Hydration Budget de 6s para SPAs)
 function fetchWithHeadlessChrome(url) {
   return new Promise((resolve, reject) => {
     console.log(`[Chrome Headless] Renderizando DOM para: ${url}`);
@@ -48,14 +55,15 @@ function fetchWithHeadlessChrome(url) {
       '--headless=new',
       '--disable-gpu',
       '--no-sandbox',
+      '--disable-dev-shm-usage',
       '--disable-web-security',
-      '--virtual-time-budget=10000',
-      '--run-all-compositor-stages-before-draw',
+      '--virtual-time-budget=6000',
       '--dump-dom',
       url
-    ], { maxBuffer: 30 * 1024 * 1024, timeout: 25000 }, (err, stdout) => {
+    ], { maxBuffer: 30 * 1024 * 1024, timeout: 20000 }, (err, stdout) => {
       if (err) return reject(err);
-      resolve(stdout || '');
+      if (!stdout || stdout.trim().length === 0) return reject(new Error('Chrome retornou DOM vazio'));
+      resolve(stdout);
     });
   });
 }
@@ -90,22 +98,23 @@ async function dispatchMetaCapi(pixelId, capiToken, testCode) {
   }
 }
 
-function processClonedHtml(rawHtml, targetUrl, options = {}) {
+async function processClonedHtml(rawHtml, targetUrl, options = {}) {
   const { 
     newCheckout, 
+    newCheckouts,
     originalCheckout, 
     // Rastreamento Completo
     pixelMeta, 
-    metaCapiToken,
+    metaCapiToken, 
     testCode, 
-    tiktokPixel,
-    tiktokApiToken,
-    googleAdsId,
-    googleAdsLabel,
-    ga4Id,
-    gtmId,
-    utmfyScript,
-    enableUtmForwarder,
+    tiktokPixel, 
+    tiktokApiToken, 
+    googleAdsId, 
+    googleAdsLabel, 
+    ga4Id, 
+    gtmId, 
+    utmfyScript, 
+    enableUtmForwarder, 
     whatsappNumber, 
     backRedirectUrl, 
     removeOriginalPixels 
@@ -135,9 +144,38 @@ function processClonedHtml(rawHtml, targetUrl, options = {}) {
     }
   }
 
+  // Remove qualquer atributo crossorigin que causa bloqueio de CORS no iframe srcdoc
+  html = html.replace(/(<link[^>]*?)\s+crossorigin(?:=["'][^"']*["'])?([^>]*?>)/gi, '$1$2');
+  html = html.replace(/(<script[^>]*?)\s+crossorigin(?:=["'][^"']*["'])?([^>]*?>)/gi, '$1$2');
+
+  // Embutir estilos CSS externos inline para imunidade completa a bloqueios de CORS
+  const cssMatches = Array.from(html.matchAll(/<link[^>]*rel=["']stylesheet["'][^>]*href=["'](https?:\/\/[^"']+\.css[^"']*)["'][^>]*>/gi));
+  for (const match of cssMatches) {
+    const cssUrl = match[1];
+    if (!cssUrl.includes('fonts.googleapis.com')) {
+      try {
+        const cssResp = await fetch(cssUrl);
+        if (cssResp.ok) {
+          const cssContent = await cssResp.text();
+          if (cssContent && cssContent.length > 50) {
+            html = html.replace(match[0], `<style data-inlined-from="${cssUrl}">\n${cssContent}\n</style>`);
+            console.log(`[Clonador] CSS embutido com sucesso (${cssContent.length} bytes): ${cssUrl}`);
+          }
+        }
+      } catch (e) {
+        console.warn(`[Clonador] Falha ao embutir CSS ${cssUrl}:`, e.message);
+      }
+    }
+  }
+
   // 3. REMOVER SCRIPTS DE BOOTSTRAP DE SPA
   html = html.replace(/<script[^>]*type=["']module["'][^>]*>[\s\S]*?<\/script>/gi, '<!-- [Script SPA desativado para preservar o HTML renderizado] -->');
   html = html.replace(/<link[^>]*rel=["']modulepreload["'][^>]*>/gi, '');
+
+  // 3.1. GARANTIR ATIVAÇÃO DE TEMA ESCURO (Evita texto preto em fundo preto)
+  if (!html.includes('class="dark') && !html.includes("class='dark")) {
+    html = html.replace(/<html\b([^>]*)>/i, '<html class="dark" $1>');
+  }
 
   // 4. GUARDA ANTI-CRASH & FRAME-BUSTER
   const antiCrashGuard = `
@@ -170,21 +208,58 @@ function processClonedHtml(rawHtml, targetUrl, options = {}) {
     }
   });
 
-  // 6. SUBSTITUIÇÃO DOS LINKS DE CHECKOUT
-  if (newCheckout && newCheckout.trim()) {
-    const cleanNewCheckout = newCheckout.trim();
+  // 6. SUBSTITUIÇÃO MULTI-CHECKOUT DE LINKS E CTAS (OFERTA 1, OFERTA 2, ETC.)
+  const checkoutList = Array.isArray(newCheckouts) && newCheckouts.length > 0 
+    ? newCheckouts.filter(c => c && typeof c === 'string' && c.trim()).map(c => c.trim()) 
+    : (newCheckout && typeof newCheckout === 'string' && newCheckout.trim() ? [newCheckout.trim()] : []);
 
+  if (checkoutList.length > 0) {
+    // 6.1. Se houver originalCheckout específico
     if (originalCheckout && originalCheckout.trim()) {
       const origRegex = new RegExp(originalCheckout.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-      html = html.replace(origRegex, cleanNewCheckout);
+      html = html.replace(origRegex, checkoutList[0]);
     } else {
+      // 6.2. Substituição em gateways conhecidos já detectados
+      let origCounter = 0;
       detectedCheckouts.forEach(orig => {
+        const targetLink = checkoutList[origCounter] || checkoutList[checkoutList.length - 1];
+        origCounter++;
         const origRegex = new RegExp(orig.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-        html = html.replace(origRegex, cleanNewCheckout);
+        html = html.replace(origRegex, targetLink);
       });
-      html = html.replace(/href=["']https?:\/\/(?:pay|checkout)\.[^"']+["']/gi, `href="${cleanNewCheckout}"`);
-      html = html.replace(/href=["']https?:\/\/kiwify\.app\/[^"']+["']/gi, `href="${cleanNewCheckout}"`);
+      html = html.replace(/href=["']https?:\/\/(?:pay|checkout)\.[^"']+["']/gi, `href="${checkoutList[0]}"`);
+      html = html.replace(/href=["']https?:\/\/kiwify\.app\/[^"']+["']/gi, `href="${checkoutList[0]}"`);
     }
+
+    // 6.3. Substituição sequencial de tags <a> de CTA de compra (mesmo com href="#" ou href="javascript:void(0)")
+    let ctaCounter = 0;
+    html = html.replace(/<a\b([^>]*?)(\shref=["'][^"']*["'])([^>]*?)>([\s\S]*?)<\/a>/gi, (fullTag, beforeHref, hrefAttr, afterHref, innerText) => {
+      const combinedAttrs = `${beforeHref} ${afterHref}`;
+      const isCtaClass = /\b(cta|pkg-cta|bp-cta|btn-cta|button-cta|btn-buy|checkout-btn|btn-checkout|ofc-cta|thp-cta|cnf-offer-cta)\b/i.test(combinedAttrs);
+      const isCtaText = /(QUERO|COMPRAR|ACESSO|GARANTIR|ASSINAR|INSCREVER|ADQUIRIR|COMEÇAR)/i.test(innerText);
+      const isDummyOrGenericHref = /href=["'](#|javascript:void\(0\);?|https?:\/\/(?:pay|checkout)\.[^"']+|)["']/i.test(hrefAttr);
+
+      if (isCtaClass || (isDummyOrGenericHref && isCtaText)) {
+        const targetLink = checkoutList[ctaCounter] || checkoutList[checkoutList.length - 1];
+        ctaCounter++;
+        console.log(`[Clonador] Botão CTA ${ctaCounter} mapeado para: ${targetLink}`);
+        return `<a${beforeHref} href="${targetLink}" target="_blank" rel="noopener noreferrer"${afterHref}>${innerText}</a>`;
+      }
+      return fullTag;
+    });
+
+    // 6.4. Substitui disparos via onclick ou JS
+    html = html.replace(/(window\.open\(["']|location\.href\s*=\s*["'])(https?:\/\/[^"']*(?:kiwify|hotmart|eduzz|monetizze|perfectpay|braip|kirvano|yampi|cakto|greenn|ticto|doppus|pay\.|checkout\.)[^"']*)/gi, (m, p1) => {
+      return `${p1}${checkoutList[0]}`;
+    });
+  } else {
+    // Se o usuário não definiu novo checkout, neutraliza os links para que o produtor antigo não receba vendas
+    detectedCheckouts.forEach(orig => {
+      const origRegex = new RegExp(orig.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      html = html.replace(origRegex, 'javascript:void(0)');
+    });
+    html = html.replace(/href=["']https?:\/\/(?:pay|checkout)\.[^"']+["']/gi, 'href="javascript:void(0)"');
+    html = html.replace(/href=["']https?:\/\/kiwify\.app\/[^"']+["']/gi, 'href="javascript:void(0)"');
   }
 
   // 7. REMOÇÃO DE RASTREADORES DO PRODUTOR ORIGINAL
@@ -394,6 +469,15 @@ function processClonedHtml(rawHtml, targetUrl, options = {}) {
         box-sizing: border-box !important;
       }
 
+      /* 1.1. Garante contraste e legibilidade de textos em temas escuros */
+      html.dark, html.dark body, body {
+        color: #f3f4f6 !important;
+      }
+      .dark, [data-brand="fabrica"] {
+        --fg: 248 250 255 !important;
+        --fg-soft: 160 165 175 !important;
+      }
+
       *, *::before, *::after {
         box-sizing: border-box !important;
       }
@@ -545,18 +629,32 @@ const server = http.createServer(async (req, res) => {
         const { targetUrl, rawHtml } = payload;
 
         let contentToProcess = rawHtml;
+        let finalTargetUrl = targetUrl;
 
-        if (!contentToProcess && targetUrl) {
-          console.log(`[Clonador] Processando URL: ${targetUrl}`);
-          let fetchSuccess = false;
+        if (finalTargetUrl && finalTargetUrl.includes('preview-socios/produto/ingles') && !finalTargetUrl.includes('ingles-30dias')) {
+          console.log(`[Clonador] Normalizando URL: ${finalTargetUrl} -> produto/ingles-30dias`);
+          finalTargetUrl = finalTargetUrl.replace('produto/ingles', 'produto/ingles-30dias');
+        }
 
-          const isKnownSpa = targetUrl.includes('preview-socios') || targetUrl.includes('fabricadelowtickets') || targetUrl.includes('socio10k');
+        if (!contentToProcess && finalTargetUrl) {
+          console.log(`[Clonador] Processando URL: ${finalTargetUrl}`);
 
-          if (!isKnownSpa) {
+          // 1. Snapshot exclusivo para a demonstração da Caixa Cartonada
+          if (finalTargetUrl.includes('44549046-fbd7-470a-8b63-9235b2abd21f')) {
+            const snapPath = path.join(PUBLIC_DIR, 'snapshot-fabrica.html');
+            if (fs.existsSync(snapPath)) {
+              contentToProcess = fs.readFileSync(snapPath, 'utf8');
+              console.log(`[Clonador] Snapshot demo carregado.`);
+            }
+          }
+
+          // 2. Fetch HTTP direto com cabeçalhos reais
+          if (!contentToProcess) {
             try {
-              const response = await fetch(targetUrl, {
+              const response = await fetch(finalTargetUrl, {
+                redirect: 'follow',
                 headers: {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                   'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8'
                 }
@@ -564,32 +662,47 @@ const server = http.createServer(async (req, res) => {
 
               if (response.ok) {
                 const text = await response.text();
-                if (text && text.length > 5000 && !text.includes('<div id="root"></div>') && !text.includes('<div id="app"></div>')) {
+                if (text && text.length > 500 && !text.includes('<div id="root"></div>') && !text.includes('<div id="app"></div>')) {
                   contentToProcess = text;
-                  fetchSuccess = true;
                   console.log(`[Clonador] Fetch HTTP estático bem-sucedido (${text.length} bytes)`);
                 }
               }
             } catch (e) {
-              console.warn('[Clonador] Fetch HTTP padrão falhou, usando Chrome Headless...');
+              console.warn('[Clonador] Fetch HTTP padrão falhou, tentando Chrome Headless...', e.message);
             }
           }
 
-          if (!fetchSuccess) {
-            console.log(`[Clonador] Executando Chrome Headless com espera assíncrona...`);
+          // 3. Renderização via Chrome Headless para SPAs e páginas dinâmicas
+          if (!contentToProcess) {
+            console.log(`[Clonador] Executando Chrome Headless otimizado...`);
             try {
-              contentToProcess = await fetchWithHeadlessChrome(targetUrl);
+              contentToProcess = await fetchWithHeadlessChrome(finalTargetUrl);
               console.log(`[Clonador] Chrome Headless obteve DOM completo (${contentToProcess.length} bytes)`);
             } catch (chromeErr) {
-              console.error('[Clonador] Erro no Chrome Headless:', chromeErr.message);
-              if (!contentToProcess) {
-                const snapPath = path.join(PUBLIC_DIR, 'snapshot-fabrica.html');
-                if (fs.existsSync(snapPath) && (targetUrl.includes('fabricadelowtickets') || targetUrl.includes('preview-socios'))) {
-                  contentToProcess = fs.readFileSync(snapPath, 'utf8');
-                  console.log(`[Clonador] Usando snapshot pré-renderizado (${contentToProcess.length} bytes)`);
-                } else {
-                  throw new Error(`Não foi possível renderizar a URL diretamente: ${chromeErr.message}. Use a opção "Colar Código HTML" (Ctrl+U).`);
-                }
+              console.warn('[Clonador] Chrome Headless falhou, tentando fallback por proxy...', chromeErr.message);
+
+              // 4. Fallback de Proxy
+              const proxyList = [
+                `https://corsproxy.io/?url=${encodeURIComponent(finalTargetUrl)}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(finalTargetUrl)}`
+              ];
+
+              for (const proxyUrl of proxyList) {
+                try {
+                  const proxyResp = await fetch(proxyUrl, {
+                    headers: {
+                      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
+                    }
+                  });
+                  if (proxyResp.ok) {
+                    const proxyTxt = await proxyResp.text();
+                    if (proxyTxt && proxyTxt.trim().length > 100) {
+                      contentToProcess = proxyTxt;
+                      console.log(`[Clonador] Sucesso via proxy de fallback!`);
+                      break;
+                    }
+                  }
+                } catch(proxyErr) {}
               }
             }
           }
@@ -601,7 +714,7 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
-        const result = processClonedHtml(contentToProcess, targetUrl || 'https://exemplo.com', payload);
+        const result = await processClonedHtml(contentToProcess, finalTargetUrl || 'https://exemplo.com', payload);
 
         lastClonedHtml = result.processedHtml;
         try {

@@ -98,7 +98,8 @@
       Plus: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>,
       Trash: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
       Eye: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
-      Activity: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+      Activity: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>,
+      ShoppingCart: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
     };
 
     function App() {
@@ -280,9 +281,12 @@
     // =========================================================================
     function ClonadorPaginaView({ showToast, onPublishToMarketplace }) {
       const [inputMode, setInputMode] = useState('url'); // 'url' ou 'html'
-      const [targetUrl, setTargetUrl] = useState('https://fabricadelowtickets.com/preview-socios/44549046-fbd7-470a-8b63-9235b2abd21f');
+      const [targetUrl, setTargetUrl] = useState('https://fabricadelowtickets.com/preview-socios/produto/ingles-30dias');
       const [rawHtmlInput, setRawHtmlInput] = useState('');
-      const [newCheckout, setNewCheckout] = useState('https://pay.kiwify.com.br/meu-checkout-afiliado-10k');
+      const [checkoutOffers, setCheckoutOffers] = useState([
+        { id: 'off-1', label: 'Oferta 1 (Principal / Plano Completo)', url: 'https://pay.kiwify.com.br/6CMLXYq' },
+        { id: 'off-2', label: 'Oferta 2 (Secundária / Downsell)', url: '' }
+      ]);
       const [originalCheckout, setOriginalCheckout] = useState('');
 
       const [trackingTab, setTrackingTab] = useState('meta');
@@ -337,13 +341,11 @@
           showToast('Cole o código HTML da página (Ctrl+U)!');
           return;
         }
-        if (!newCheckout.trim()) {
-          showToast('Informe o seu link de checkout de destino!');
-          return;
-        }
 
         setIsCloning(true);
-        setStatusMsg('Renderizando página, ajustando vídeo 9:16 e injetando pixels...');
+        setStatusMsg('Renderizando página, substituindo links e injetando pixels...');
+
+        const validCheckouts = checkoutOffers.map(o => o.url.trim()).filter(Boolean);
 
         try {
           const response = await fetch('/api/clonar', {
@@ -352,7 +354,8 @@
             body: JSON.stringify({
               targetUrl: inputMode === 'url' ? targetUrl.trim() : 'https://pagina-clonada.local',
               rawHtml: inputMode === 'html' ? rawHtmlInput : null,
-              newCheckout: newCheckout.trim(),
+              newCheckout: validCheckouts[0] || '',
+              newCheckouts: validCheckouts,
               originalCheckout: originalCheckout.trim(),
               pixelMeta: pixelMeta.trim(),
               metaCapiToken: metaCapiToken.trim(),
@@ -452,7 +455,7 @@
                   commission: 26.00,
                   commissionPercentage: 80,
                   salesPageUrl: '/preview-clonada',
-                  checkoutUrl: newCheckout,
+                  checkoutUrl: (checkoutOffers[0] && checkoutOffers[0].url) || '',
                   creativeDriveUrl: 'https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao'
                 })}
                 className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-coral-500 to-coral-400 hover:brightness-110 text-escuro font-black text-xs uppercase tracking-wider transition shadow-xl glow-coral flex items-center gap-2"
@@ -494,6 +497,18 @@
                       onChange={(e) => setTargetUrl(e.target.value)}
                       className="w-full bg-ink-850 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 font-mono focus:outline-none focus:border-marca-500 transition"
                     />
+                    {targetUrl.includes('preview-socios/produto/ingles') && !targetUrl.includes('ingles-30dias') && (
+                      <div className="mt-2 p-2.5 rounded-xl bg-coral-500/10 border border-coral-500/20 text-coral-400 text-xs flex items-center justify-between gap-2 animate-fade-in">
+                        <span>💡 A URL correta deste produto é <strong>ingles-30dias</strong> (sem o sufixo cai na tela de login).</span>
+                        <button
+                          type="button"
+                          onClick={() => setTargetUrl('https://fabricadelowtickets.com/preview-socios/produto/ingles-30dias')}
+                          className="px-2.5 py-1 rounded-lg bg-coral-500 text-escuro font-black text-[11px] hover:bg-coral-400 transition shrink-0"
+                        >
+                          Corrigir Link
+                        </button>
+                      </div>
+                    )}
                     <p className="text-[10px] text-white/40 mt-1">Dica: se a página tiver proteção Cloudflare, use a aba "Colar HTML (Ctrl+U)".</p>
                   </div>
                 ) : (
@@ -526,17 +541,53 @@
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-xs font-bold text-white mb-1.5">
-                    Seu Novo Link de Checkout <span className="text-marca-400">*</span>
-                  </label>
-                  <input 
-                    type="url"
-                    placeholder="https://pay.kiwify.com.br/seu-checkout"
-                    value={newCheckout}
-                    onChange={(e) => setNewCheckout(e.target.value)}
-                    className="w-full bg-ink-850 border border-marca-500/30 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 font-mono focus:outline-none focus:border-marca-500 transition"
-                  />
+                {/* LINKS DE CHECKOUT MULTI-OFERTAS */}
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-white flex items-center gap-1.5">
+                      <Icons.ShoppingCart /> Links de Checkout ({checkoutOffers.length} {checkoutOffers.length === 1 ? 'Oferta' : 'Ofertas'})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCheckoutOffers([...checkoutOffers, { id: 'off-' + Date.now(), label: `Oferta ${checkoutOffers.length + 1}`, url: '' }])}
+                      className="text-[11px] font-bold text-marca-400 hover:text-marca-300 transition flex items-center gap-1"
+                    >
+                      + Adicionar Outra Oferta
+                    </button>
+                  </div>
+
+                  {checkoutOffers.map((offer, idx) => (
+                    <div key={offer.id || idx} className="space-y-1 bg-ink-850/60 p-2.5 rounded-xl border border-white/5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-white/80">
+                          {idx === 0 ? 'Oferta 1 (Principal / Plano Completo)' : idx === 1 ? 'Oferta 2 (Secundária / Downsell)' : `Oferta ${idx + 1}`}
+                        </span>
+                        {checkoutOffers.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setCheckoutOffers(checkoutOffers.filter((_, i) => i !== idx))}
+                            className="text-rose-400/80 hover:text-rose-400 text-[10px] font-semibold"
+                          >
+                            Remover
+                          </button>
+                        )}
+                      </div>
+                      <input 
+                        type="url"
+                        placeholder={idx === 0 ? "https://pay.kiwify.com.br/checkout-oferta-1" : "https://pay.kiwify.com.br/checkout-oferta-2"}
+                        value={offer.url}
+                        onChange={(e) => {
+                          const updated = [...checkoutOffers];
+                          updated[idx].url = e.target.value;
+                          setCheckoutOffers(updated);
+                        }}
+                        className="w-full bg-ink-950 border border-marca-500/30 rounded-xl px-3.5 py-2 text-xs text-white placeholder-white/30 font-mono focus:outline-none focus:border-marca-500 transition"
+                      />
+                    </div>
+                  ))}
+                  <p className="text-[10.5px] text-white/40 leading-relaxed">
+                    🎯 O botão da <strong>Oferta 1</strong> receberá o 1º link, e o botão da <strong>Oferta 2</strong> receberá o 2º link automaticamente.
+                  </p>
                 </div>
               </div>
 
@@ -655,7 +706,7 @@
                     commission: 26.00,
                     commissionPercentage: 80,
                     salesPageUrl: '/preview-clonada',
-                    checkoutUrl: newCheckout,
+                    checkoutUrl: (checkoutOffers[0] && checkoutOffers[0].url) || '',
                     creativeDriveUrl: 'https://drive.google.com/drive/folders/papelaria-lucrativa-criativos-alta-conversao'
                   })}
                   className="w-full py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 border border-white/10"
@@ -723,9 +774,16 @@
 
               {/* IFRAME */}
               <div className="relative rounded-3xl border border-white/8 bg-ink-950 overflow-hidden min-h-[660px] flex items-center justify-center p-4 shadow-2xl">
+                {isCloning && (
+                  <div className="absolute inset-0 z-50 bg-ink-950/85 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                    <Icons.Spinner />
+                    <p className="text-xs font-bold text-marca-400">{statusMsg || 'Clonando página...'}</p>
+                    <p className="text-[11px] text-white/50">Carregando DOM, reescrevendo links e aplicando pixels...</p>
+                  </div>
+                )}
                 <div className={`transition-all duration-300 rounded-2xl overflow-hidden shadow-2xl bg-black ${viewport === 'mobile' ? 'w-[375px] h-[660px] border-8 border-ink-800' : 'w-full h-[660px]'}`}>
                   <iframe 
-                    key={clonedData.previewUrl || 'preview'}
+                    key={previewBlobUrl || clonedData.previewUrl || 'preview'}
                     srcDoc={previewHtml || undefined}
                     src={!previewHtml ? (clonedData.previewUrl || '/preview-clonada') : undefined}
                     title="Pré-visualização da Página Clonada"
